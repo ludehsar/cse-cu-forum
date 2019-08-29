@@ -1,3 +1,8 @@
+import Swal from 'sweetalert2';
+import VueRouter from 'vue-router';
+import 'sweetalert2/src/sweetalert2.scss';
+import { Form, HasError, AlertError } from 'vform';
+
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -5,6 +10,15 @@
  */
 
 window._ = require('lodash');
+
+/**
+ * We'll load jQuery plugin which provides support
+ * for JavaScript based features.
+ */
+
+try {
+    window.$ = windows.jQuery = require('jquery');
+} catch (e) {}
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -46,8 +60,15 @@ if (token) {
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     encrypted: true
 // });
-
+    
 window.Vue = require('vue');
+window.swal = Swal;
+
+Vue.use(VueRouter);
+
+window.Form = Form;
+Vue.component(HasError.name, HasError);
+Vue.component(AlertError.name, AlertError);
 
 /**
  * The following block of code may be used to automatically register your
@@ -60,7 +81,16 @@ window.Vue = require('vue');
 // const files = require.context('./', true, /\.vue$/i);
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default));
 
-Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+const routes = [
+    { path: '/admin', component: require('./components/DashboardComponent.vue').default },
+    { path: '/admin/dashboard', component: require('./components/DashboardComponent.vue').default },
+    { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default }
+];
+
+const router = new VueRouter({
+    routes,
+    mode: 'history'
+});
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -70,4 +100,5 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
 
 const app = new Vue({
     el: '#app',
+    router,
 });

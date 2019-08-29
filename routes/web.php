@@ -12,5 +12,12 @@
 */
 
 Route::get('/', function () {
-    return view('admin.app');
+    return view('frontend.home.index');
+})->name('home');
+
+Auth::routes(['verify' => true]);
+
+Route::group(['middleware' => 'verified'], function () {
+    Route::get('{path}', ['uses' => 'AdminPanelStaticController@index', 'as' => 'admin'])->where('path', '([A-z\d\-\/_.]+)?');
 });
+

@@ -16,3 +16,9 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
+    Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
+    Route::post('/categories/create/new', ['uses' => 'API\CategoryAPIController@addCategory']);
+});
