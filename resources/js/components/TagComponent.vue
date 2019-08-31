@@ -2,11 +2,11 @@
     <!-- Begin Page Content -->
     <div class="container-fluid">
         <div class="clearfix">
-            <h1 class="h3 mb-2 text-gray-800 float-left">Categories</h1>
+            <h1 class="h3 mb-2 text-gray-800 float-left">Tags</h1>
         </div>
         <div class="card shadow mt-4 mb-4">
             <div class="card-header py-3">
-                <button class="btn btn-primary float-right" @click="newForm">Add New Category</button>
+                <button class="btn btn-primary float-right" @click="newForm">Add New Tag</button>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -14,8 +14,8 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Category Name</th>
-                                <th>Category Slug</th>
+                                <th>Tag Name</th>
+                                <th>Tag Slug</th>
                                 <th>Created At</th>
                                 <th>Updated At</th>
                                 <th style="width:200px; min-width:200px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
@@ -26,21 +26,21 @@
             </div>
         </div>
 
-        <!-- Create / Edit Category Modal -->
-        <div class="modal fade" id="category-form" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="category-form-title" aria-hidden="true">
+        <!-- Create / Edit Tag Modal -->
+        <div class="modal fade" id="tag-form" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="tag-form-title" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <form @submit.prevent="submitForm" @keydown="form.onKeydown($event)">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="category-form-title">{{ formTitle }}</h5>
+                            <h5 class="modal-title" id="tag-form-title">{{ formTitle }}</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
                             <div class="form-group">
-                                <label for="category-name">Category Name</label>
-                                <input v-model="form.name" type="text" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }" id="category-name" name="category_name" aria-describedby="category" placeholder="Enter category name" required>
+                                <label for="tag-name">Tag Name</label>
+                                <input v-model="form.name" type="text" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }" id="tag-name" name="tag_name" aria-describedby="tag" placeholder="Enter tag name" required>
                                 <has-error :form="form" field="name"></has-error>
                             </div>
                         </div>
@@ -58,23 +58,23 @@
 <script>
     export default {
         mounted () {
-            this.initializeCategories();
+            this.initializeTags();
 
-            $('#dataTable').on('click', '#edit-category', function (event) {
-                let categoryId = $(event.target).data('id');
-                let category;
-                axios.get('/api/categories/' + categoryId).then((response) => {
-                    category = {
+            $('#dataTable').on('click', '#edit-tag', function (event) {
+                let tagId = $(event.target).data('id');
+                let tag;
+                axios.get('/api/tags/' + tagId).then((response) => {
+                    tag = {
                         id: response.data.id,
                         name: response.data.name
                     };
-                    this.editForm(category);
+                    this.editForm(tag);
                 });
             }.bind(this));
 
-            $('#dataTable').on('click', '#delete-category', function (event) {
-                let categoryId = $(event.target).data('id');
-                this.deleteCategory(categoryId);
+            $('#dataTable').on('click', '#delete-tag', function (event) {
+                let tagId = $(event.target).data('id');
+                this.deleteTag(tagId);
             }.bind(this));
         },
         data () {
@@ -83,17 +83,17 @@
                     id: -1,
                     name: ''
                 }),
-                formTitle: 'Add Category'
+                formTitle: 'Add Tag'
             }
         },
         methods: {
-            initializeCategories: function () {
+            initializeTags: function () {
                 $('#dataTable').DataTable({
                     processing: true,
                     serverSide: true,
                     destroy: true,
                     ajax: {
-                        url: '/api/categories/all',
+                        url: '/api/tags/all',
                         type: 'get',
                         beforeSend: function (request) {
                             request.setRequestHeader("X-CSRF-TOKEN", document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
@@ -111,42 +111,42 @@
             },
             newForm: function () {
                 this.form.reset();
-                this.formTitle = 'Add Category';
-                $('#category-form').modal('show');
+                this.formTitle = 'Add Tag';
+                $('#tag-form').modal('show');
             },
-            editForm: function (category) {
+            editForm: function (tag) {
                 this.form.reset();
-                this.formTitle = 'Edit Category';
-                $('#category-form').modal('show');
-                this.form.fill(category);
+                this.formTitle = 'Edit Tag';
+                $('#tag-form').modal('show');
+                this.form.fill(tag);
             },
             submitForm: function () {
-                if (this.form.id === -1) this.addCategory();
-                else this.editCategory();
+                if (this.form.id === -1) this.addTag();
+                else this.editTag();
             },
-            addCategory: function () {
-                this.form.post('/api/categories/create/new').then(() => {
+            addTag: function () {
+                this.form.post('/api/tags/create/new').then(() => {
                     swal.fire(
                         'Added!',
-                        'Category has been added successfully!',
+                        'Tag has been added successfully!',
                         'success'
                     );
-                    $('#category-form').modal('hide');
-                    this.initializeCategories();
+                    $('#tag-form').modal('hide');
+                    this.initializeTags();
                 });
             },
-            editCategory: function () {
-                this.form.put('/api/categories/edit/' + this.form.id).then(() => {
+            editTag: function () {
+                this.form.put('/api/tags/edit/' + this.form.id).then(() => {
                     swal.fire(
                         'Updated!',
-                        'Category has been updated successfully!',
+                        'Tag has been updated successfully!',
                         'success'
                     );
-                    $('#category-form').modal('hide');
-                    this.initializeCategories();
+                    $('#tag-form').modal('hide');
+                    this.initializeTags();
                 });
             },
-            deleteCategory: function (categoryId) {
+            deleteTag: function (tagId) {
                 swal.fire({
                     title: 'Are you sure?',
                     text: "You won't be able to revert this!",
@@ -157,13 +157,13 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.value) {
-                        this.form.delete('/api/categories/delete/' + categoryId).then(() => {
+                        this.form.delete('/api/tags/delete/' + tagId).then(() => {
                             swal.fire(
                                 'Deleted!',
-                                'Category has been deleted successfully!',
+                                'Tag has been deleted successfully!',
                                 'success'
                             );
-                            this.initializeCategories();
+                            this.initializeTags();
                         });
                     }
                 });

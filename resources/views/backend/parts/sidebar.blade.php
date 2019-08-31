@@ -44,10 +44,10 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <router-link class="nav-link" to="/admin/tags">
             <i class="fas fa-fw fa-tags"></i>
             <span>Tags</span>
-        </a>
+        </router-link>
     </li>
 
     <hr class="sidebar-divider">

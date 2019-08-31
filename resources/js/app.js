@@ -84,7 +84,8 @@ Vue.component(AlertError.name, AlertError);
 const routes = [
     { path: '/admin', component: require('./components/DashboardComponent.vue').default },
     { path: '/admin/dashboard', component: require('./components/DashboardComponent.vue').default },
-    { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default }
+    { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default },
+    { path: '/admin/tags', component: require('./components/TagComponent.vue').default }
 ];
 
 const router = new VueRouter({
