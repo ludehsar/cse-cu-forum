@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Tag;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
 
-class TagAPIController extends Controller
+class PostAPIController extends Controller
 {
     /**
-     * Shows all tags.
+     * Shows all posts.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAllTags()
+    public function getAllPosts()
     {
-        return Datatables::of(Tag::query())
+        return Datatables::of(Post::query())
             ->removeColumn('user_id')
             ->addColumn('created_by', function($tag) {
-                return $tag->getUsername();
+                return $post->getUsername();
             })
             ->addColumn('action', function ($tag) {
                 $attr = '<div class="btn-group" role="group" aria-label="Second group">';

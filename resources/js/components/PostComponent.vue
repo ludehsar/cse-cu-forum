@@ -2,11 +2,11 @@
     <!-- Begin Page Content -->
     <div class="container-fluid">
         <div class="clearfix">
-            <h1 class="h3 mb-2 text-gray-800 float-left">Categories</h1>
+            <h1 class="h3 mb-2 text-gray-800 float-left">Posts</h1>
         </div>
         <div class="card shadow mt-4 mb-4">
             <div class="card-header py-3">
-                <button class="btn btn-primary float-right" @click="newForm">Add New Category</button>
+                <button class="btn btn-primary float-right">Create New Post</button>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -16,7 +16,6 @@
                                 <th>ID</th>
                                 <th>Category Name</th>
                                 <th>Category Slug</th>
-                                <th>Created By</th>
                                 <th>Created At</th>
                                 <th>Updated At</th>
                                 <th style="width:200px; min-width:200px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
@@ -26,32 +25,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Create / Edit Category Modal -->
-        <div class="modal fade" id="category-form" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="category-form-title" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <form @submit.prevent="submitForm" @keydown="form.onKeydown($event)">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="category-form-title">{{ formTitle }}</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label for="category-name">Category Name</label>
-                                <input v-model="form.name" type="text" class="form-control" :class="{ 'is-invalid': form.errors.has('name') }" id="category-name" name="category_name" aria-describedby="category" placeholder="Enter category name" required>
-                                <has-error :form="form" field="name"></has-error>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <editor :api-key="editor_api_key" :init="{plugins: ['autoresize', 'code', 'codesample', 'emoticons', 'fullscreen', 'help', 'hr', 'image', 'imagetools', 'insertdatetime', 'link', 'lists', 'media', 'paste', 'preview', 'print', 'searchreplace', 'table'], toolbar: 'styleselect | bold italic underline | strikethrough subscript superscript | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media codesample table emoticons | print preview | forecolor backcolor code' }"></editor>
     </div>
     <!-- /.container-fluid -->
 </template>
@@ -80,11 +54,7 @@
         },
         data () {
             return {
-                form: new Form({
-                    id: -1,
-                    name: ''
-                }),
-                formTitle: 'Add Category'
+                editor_api_key: process.env.MIX_EDITOR_API_KEY
             }
         },
         methods: {
@@ -104,48 +74,10 @@
                         { data: 'id', name: 'id' },
                         { data: 'name', name: 'name' },
                         { data: 'slug', name: 'slug' },
-                        { data: 'created_by', name: 'created_by' },
                         { data: 'created_at', name: 'created_at' },
                         { data: 'updated_at', name: 'updated_at' },
                         { data: 'action', name: 'action', orderable: false }
                     ]
-                });
-            },
-            newForm: function () {
-                this.form.reset();
-                this.formTitle = 'Add Category';
-                $('#category-form').modal('show');
-            },
-            editForm: function (category) {
-                this.form.reset();
-                this.formTitle = 'Edit Category';
-                $('#category-form').modal('show');
-                this.form.fill(category);
-            },
-            submitForm: function () {
-                if (this.form.id === -1) this.addCategory();
-                else this.editCategory();
-            },
-            addCategory: function () {
-                this.form.post('/api/categories/create/new').then(() => {
-                    swal.fire(
-                        'Added!',
-                        'Category has been added successfully!',
-                        'success'
-                    );
-                    $('#category-form').modal('hide');
-                    this.initializeCategories();
-                });
-            },
-            editCategory: function () {
-                this.form.put('/api/categories/edit/' + this.form.id).then(() => {
-                    swal.fire(
-                        'Updated!',
-                        'Category has been updated successfully!',
-                        'success'
-                    );
-                    $('#category-form').modal('hide');
-                    this.initializeCategories();
                 });
             },
             deleteCategory: function (categoryId) {
@@ -162,7 +94,7 @@
                         this.form.delete('/api/categories/delete/' + categoryId).then(() => {
                             swal.fire(
                                 'Deleted!',
-                                'Category has been deleted successfully!',
+                                'This post has been deleted successfully!',
                                 'success'
                             );
                             this.initializeCategories();

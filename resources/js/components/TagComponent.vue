@@ -16,6 +16,7 @@
                                 <th>ID</th>
                                 <th>Tag Name</th>
                                 <th>Tag Slug</th>
+                                <th>Created By</th>
                                 <th>Created At</th>
                                 <th>Updated At</th>
                                 <th style="width:200px; min-width:200px;" class="text-center text-danger"><i class="fa fa-bolt"></i></th>
@@ -103,6 +104,7 @@
                         { data: 'id', name: 'id' },
                         { data: 'name', name: 'name' },
                         { data: 'slug', name: 'slug' },
+                        { data: 'created_by', name: 'created_by' },
                         { data: 'created_at', name: 'created_at' },
                         { data: 'updated_at', name: 'updated_at' },
                         { data: 'action', name: 'action', orderable: false }

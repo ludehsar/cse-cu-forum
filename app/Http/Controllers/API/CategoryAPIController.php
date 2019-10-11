@@ -17,6 +17,10 @@ class CategoryAPIController extends Controller
     public function getAllCategories()
     {
         return Datatables::of(Category::query())
+            ->removeColumn('user_id')
+            ->addColumn('created_by', function($category) {
+                return $category->getUsername();
+            })
             ->addColumn('action', function ($category) {
                 $attr = '<div class="btn-group" role="group" aria-label="Second group">';
                 $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-info" id="edit-category" data-id="' . $category->id . '"><i class="fa fa-edit"></i> Edit</a>';
@@ -24,7 +28,7 @@ class CategoryAPIController extends Controller
 
                 return $attr;
             })
-            ->rawColumns(['action'])
+            ->rawColumns(['created_by', 'action'])
             ->make(true);
     }
 
@@ -40,6 +44,11 @@ class CategoryAPIController extends Controller
         return response($category, 200);
     }
 
+    /**
+     * Adds a new category.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function addCategory(Request $request)
     {
         $this->validate($request, [
@@ -47,15 +56,23 @@ class CategoryAPIController extends Controller
         ]);
         
         $slug = str_slug($request->name);
-            
+
+        $user_id = auth('api')->user()->id;
+
         Category::create([
             'name' => $request->name,
-            'slug' => $slug
+            'slug' => $slug,
+            'user_id' => $user_id,
         ]);
 
         return response(null, 201);
     }
 
+    /**
+     * Edits category.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function editCategory(Request $request, $id)
     {
         $category = Category::findOrFail($id);
@@ -64,15 +81,23 @@ class CategoryAPIController extends Controller
         ]);
         
         $slug = str_slug($request->name);
+
+        $user_id = auth('api')->user()->id;
             
         $category->update([
             'name' => $request->name,
-            'slug' => $slug
+            'slug' => $slug,
+            'user_id' => $user_id,
         ]);
 
         return response(null, 200);
     }
 
+    /**
+     * Deletes category.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function deleteCategory($id)
     {
         $category = Category::findOrFail($id);

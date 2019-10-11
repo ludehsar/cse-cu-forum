@@ -1,7 +1,10 @@
 import Swal from 'sweetalert2';
 import VueRouter from 'vue-router';
 import 'sweetalert2/src/sweetalert2.scss';
+import Editor from '@tinymce/tinymce-vue';
 import { Form, HasError, AlertError } from 'vform';
+
+require('tagplug');
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -69,6 +72,7 @@ Vue.use(VueRouter);
 window.Form = Form;
 Vue.component(HasError.name, HasError);
 Vue.component(AlertError.name, AlertError);
+Vue.component('editor', Editor);
 
 /**
  * The following block of code may be used to automatically register your
@@ -82,10 +86,12 @@ Vue.component(AlertError.name, AlertError);
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default));
 
 const routes = [
-    { path: '/admin', component: require('./components/DashboardComponent.vue').default },
+    { path: '/admin', redirect: '/admin/dashboard' },
     { path: '/admin/dashboard', component: require('./components/DashboardComponent.vue').default },
     { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default },
-    { path: '/admin/tags', component: require('./components/TagComponent.vue').default }
+    { path: '/admin/tags', component: require('./components/TagComponent.vue').default },
+    { path: '/admin/posts', component: require('./components/PostComponent.vue').default },
+    { path: '/admin/posts/create', component: require('./components/AddOrEditPostComponent.vue').default }
 ];
 
 const router = new VueRouter({

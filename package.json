@@ -21,8 +21,10 @@
         "vue-template-compiler": "^2.6.10"
     },
     "dependencies": {
+        "@tinymce/tinymce-vue": "^3.0.1",
         "jquery": "^3.4.1",
         "sweetalert2": "^8.15.3",
+        "tagplug": "^1.0.3",
         "vform": "^1.0.1",
         "vue-router": "^3.1.2"
     }

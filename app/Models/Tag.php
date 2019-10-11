@@ -19,7 +19,7 @@ class Tag extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'slug'
+        'name', 'slug', 'user_id'
     ];
 
     /**
@@ -31,4 +31,16 @@ class Tag extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Gets the username who have created the category
+     * 
+     * @return string
+     */
+    public function getUsername()
+    {
+        $user = User::find($this->user_id);
+
+        return $user->username;
+    }
 }
