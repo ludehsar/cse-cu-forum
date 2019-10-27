@@ -19,7 +19,7 @@ class CategoryAPIController extends Controller
         return Datatables::of(Category::query())
             ->removeColumn('user_id')
             ->addColumn('created_by', function($category) {
-                return $category->getUsername();
+                return $category->user->name;
             })
             ->addColumn('action', function ($category) {
                 $attr = '<div class="btn-group" role="group" aria-label="Second group">';

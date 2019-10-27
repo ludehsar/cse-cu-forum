@@ -30,10 +30,10 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <router-link class="nav-link" to="/admin/posts">
             <i class="fas fa-fw fa-book-open"></i>
             <span>Posts</span>
-        </a>
+        </router-link>
     </li>
 
     <li class="nav-item">

@@ -13,10 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::group(['middleware' => 'auth:api'], function () {
     // Categories
     Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
@@ -31,4 +27,16 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('/tags/create/new', ['uses' => 'API\TagAPIController@addTag']);
     Route::put('/tags/edit/{id}', ['uses' => 'API\TagAPIController@editTag']);
     Route::delete('/tags/delete/{id}', ['uses' => 'API\TagAPIController@deleteTag']);
+
+    // Posts
+    Route::get('/posts/all', ['uses' => 'API\PostAPIController@getAllPosts']);
+    Route::get('/posts/{id}', ['uses' => 'API\PostAPIController@getPost']);
+    Route::get('/posts/{id}/tags', ['uses' => 'API\PostAPIController@getPostTags']);
+    Route::post('/posts/create/new', ['uses' => 'API\PostAPIController@addPost']);
+    Route::put('/posts/edit/{id}', ['uses' => 'API\PostAPIController@editPost']);
+    Route::delete('/posts/delete/{id}', ['uses' => 'API\PostAPIController@deletePost']);
+
+    // Users
+    Route::get('/users/{id}', ['uses' => 'API\UserAPIController@getUser']);
+    Route::get('/user', ['uses' => 'API\UserAPIController@getCurrentUser']);
 });

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Tag extends Model
@@ -32,15 +34,13 @@ class Tag extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Gets the username who have created the category
-     * 
-     * @return string
-     */
-    public function getUsername()
+    public function posts()
     {
-        $user = User::find($this->user_id);
+        return $this->belongsToMany(Post::class, 'post_tag_bridges')->withTimestamps();
+    }
 
-        return $user->username;
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

@@ -19,7 +19,7 @@ class TagAPIController extends Controller
         return Datatables::of(Tag::query())
             ->removeColumn('user_id')
             ->addColumn('created_by', function($tag) {
-                return $tag->getUsername();
+                return $tag->user->name;
             })
             ->addColumn('action', function ($tag) {
                 $attr = '<div class="btn-group" role="group" aria-label="Second group">';
@@ -101,6 +101,8 @@ class TagAPIController extends Controller
     public function deleteTag($id)
     {
         $tag = Tag::findOrFail($id);
+
+        $tag->posts()->detach();
 
         $tag->delete();
 

@@ -1,10 +1,10 @@
 import Swal from 'sweetalert2';
+import vSelect from 'vue-select';
 import VueRouter from 'vue-router';
+import 'vue-select/dist/vue-select.css';
 import 'sweetalert2/src/sweetalert2.scss';
 import Editor from '@tinymce/tinymce-vue';
 import { Form, HasError, AlertError } from 'vform';
-
-require('tagplug');
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -73,6 +73,7 @@ window.Form = Form;
 Vue.component(HasError.name, HasError);
 Vue.component(AlertError.name, AlertError);
 Vue.component('editor', Editor);
+Vue.component('v-select', vSelect);
 
 /**
  * The following block of code may be used to automatically register your
@@ -91,7 +92,9 @@ const routes = [
     { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default },
     { path: '/admin/tags', component: require('./components/TagComponent.vue').default },
     { path: '/admin/posts', component: require('./components/PostComponent.vue').default },
-    { path: '/admin/posts/create', component: require('./components/AddOrEditPostComponent.vue').default }
+    { path: '/admin/posts/create', component: require('./components/AddOrEditPostComponent.vue').default },
+    { path: '/admin/posts/edit/:postId', component: require('./components/AddOrEditPostComponent.vue').default },
+    { path: '/admin/posts/view/:postId', component: require('./components/ViewPostComponent.vue').default }
 ];
 
 const router = new VueRouter({

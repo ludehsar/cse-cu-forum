@@ -18,92 +18,188 @@ class PostAPIController extends Controller
     {
         return Datatables::of(Post::query())
             ->removeColumn('user_id')
-            ->addColumn('created_by', function($tag) {
-                return $post->getUsername();
+            ->removeColumn('category_id')
+            ->removeColumn('description')
+            ->removeColumn('subtitle')
+            ->removeColumn('slug')
+            ->removeColumn('is_published')
+            ->removeColumn('total_contribution')
+            ->removeColumn('total_love')
+            ->removeColumn('total_wow')
+            ->removeColumn('total_haha')
+            ->removeColumn('total_angry')
+            ->addColumn('created_by', function($post) {
+                return $post->user->name;
             })
-            ->addColumn('action', function ($tag) {
+            ->addColumn('category', function($post) {
+                return $post->category->name;
+            })
+            ->addColumn('status', function($post) {
+                if ($post->is_published) return '<span style="color: green">Published</span>';
+                return '<span style="color: red">Not Published</span>';
+            })
+            ->addColumn('action', function ($post) {
                 $attr = '<div class="btn-group" role="group" aria-label="Second group">';
-                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-info" id="edit-tag" data-id="' . $tag->id . '"><i class="fa fa-edit"></i> Edit</a>';
-                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-danger" id="delete-tag" data-id="' . $tag->id . '"><i class="fa fa-trash"></i> Delete</a></div>';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-primary" id="view-post" data-id="' . $post->id . '"><i class="fa fa-eye"></i> View</a>';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-info" id="edit-post" data-id="' . $post->id . '"><i class="fa fa-edit"></i> Edit</a>';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-danger" id="delete-post" data-id="' . $post->id . '"><i class="fa fa-trash"></i> Delete</a></div>';
 
                 return $attr;
             })
-            ->rawColumns(['created_by', 'action'])
+            ->rawColumns(['created_by', 'category', 'status', 'action'])
             ->make(true);
     }
 
     /**
-     * Get tag details.
+     * Get post details.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTag(int $id)
+    public function getPost(int $id)
     {
-        $tag = Tag::findOrFail($id);
+        $post = Post::findOrFail($id);
 
-        return response($tag, 200);
+        return response($post, 200);
     }
 
     /**
-     * Creates a new tag.
+     * Get post tags.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function addTag(Request $request)
+    public function getPostTags(int $id)
+    {
+        $tags = Post::findOrFail($id)->tags();
+
+        return response($tags->get(), 200);
+    }
+
+    /**
+     * Creates a new post.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function addPost(Request $request)
     {
         $this->validate($request, [
-            'name' => ['required', 'unique:tags']
+            'title' => ['required'],
+            'subtitle' => ['required'],
+            'category' => ['required', 'exists:categories,id'],
+            'tags' => ['required', 'array'],
+            'tags[*]' => ['exists:tags,id'],
+            'description' => ['required'],
         ]);
+
+        $isPublished = $request->has('publish') && $request->publish == true;
         
-        $slug = str_slug($request->name);
+        $slug = $this->createSlug($request->title);
 
         $user_id = auth('api')->user()->id;
         
-        Tag::create([
-            'name' => $request->name,
-            'slug' => $slug,
+        Post::create([
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'category_id' => $request->category,
             'user_id' => $user_id,
+            'slug' => $slug,
+            'description' => $request->description,
+            'is_published' => $isPublished,
         ]);
+
+        $post = Post::where('slug', $slug)->first();
+
+        $post->tags()->sync($request->tags);
 
         return response(null, 201);
     }
 
     /**
-     * Edits tag details.
+     * Edits post details.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function editTag(Request $request, $id)
+    public function editPost(Request $request, $id)
     {
-        $tag = Tag::findOrFail($id);
-        $this->validate($request, [
-            'name' => ['required', 'unique:tags']
-        ]);
+        $post = Post::findOrFail($id);
         
-        $slug = str_slug($request->name);
-
-        $user_id = auth('api')->user()->id;
-            
-        $tag->update([
-            'name' => $request->name,
-            'slug' => $slug,
-            'user_id' => $user_id,
+        $this->validate($request, [
+            'title' => ['required'],
+            'subtitle' => ['required'],
+            'category' => ['required', 'exists:categories,id'],
+            'tags' => ['required', 'array'],
+            'tags[*]' => ['exists:tags,id'],
+            'description' => ['required'],
         ]);
+
+        $isPublished = $request->has('publish') && $request->publish == true;
+        
+        $slug = $this->createSlug($request->title, $id);
+
+        $post->update([
+            'title' => $request->title,
+            'subtitle' => $request->subtitle,
+            'category_id' => $request->category,
+            'slug' => $slug,
+            'description' => $request->description,
+            'is_published' => $isPublished,
+        ]);
+
+        $post->tags()->sync($request->tags);
 
         return response(null, 200);
     }
 
     /**
-     * Deletes tag.
+     * Deletes post.
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function deleteTag($id)
+    public function deletePost($id)
     {
-        $tag = Tag::findOrFail($id);
+        $post = Post::findOrFail($id);
 
-        $tag->delete();
+        $post->tags()->detach();
+
+        $post->delete();
 
         return response(null, 200);
+    }
+
+    /**
+     * @param $title
+     * @param int $id
+     * @return string
+     * @throws \Exception
+     */
+    public function createSlug($title, $id = 0)
+    {
+        // Normalize the title
+        $slug = str_slug($title);
+        
+        // Get any that could possibly be related.
+        // This cuts the queries down by doing it once.
+        $allSlugs = $this->getRelatedSlugs($slug, $id);
+        
+        // If we haven't used it before then we are all good.
+        if (! $allSlugs->contains('slug', $slug)){
+            return $slug;
+        }
+        
+        // Just append numbers like a savage until we find not used.
+        for ($i = 1;; $i++) {
+            $newSlug = $slug.'-'.$i;
+            if (! $allSlugs->contains('slug', $newSlug)) {
+                return $newSlug;
+            }
+        }
+
+        throw new \Exception('Can not create a unique slug');
+    }
+
+    protected function getRelatedSlugs($slug, $id = 0)
+    {
+        return Post::select('slug')->where('slug', 'like', $slug.'%')
+            ->where('id', '<>', $id)
+            ->get();
     }
 }
