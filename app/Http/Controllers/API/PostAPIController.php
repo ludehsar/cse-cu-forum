@@ -135,16 +135,18 @@ class PostAPIController extends Controller
         
         $slug = $this->createSlug($request->title, $id);
 
-        $post->update([
-            'title' => $request->title,
-            'subtitle' => $request->subtitle,
-            'category_id' => $request->category,
-            'slug' => $slug,
-            'description' => $request->description,
-            'is_published' => $isPublished,
-        ]);
+        if (auth('api')->user()->is_admin || auth('api')->user()->id == $post->user_id) {
+            $post->update([
+                'title' => $request->title,
+                'subtitle' => $request->subtitle,
+                'category_id' => $request->category,
+                'slug' => $slug,
+                'description' => $request->description,
+                'is_published' => $isPublished,
+            ]);
 
-        $post->tags()->sync($request->tags);
+            $post->tags()->sync($request->tags);
+        }
 
         return response(null, 200);
     }
@@ -158,9 +160,10 @@ class PostAPIController extends Controller
     {
         $post = Post::findOrFail($id);
 
-        $post->tags()->detach();
-
-        $post->delete();
+        if (auth('api')->user()->is_admin || auth('api')->user()->id == $post->user_id) {
+            $post->tags()->detach();
+            $post->delete();
+        }
 
         return response(null, 200);
     }

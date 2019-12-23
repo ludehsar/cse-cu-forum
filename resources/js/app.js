@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import 'vue-select/dist/vue-select.css';
 import 'sweetalert2/src/sweetalert2.scss';
 import Editor from '@tinymce/tinymce-vue';
+import VueProgressBar from 'vue-progressbar';
 import { Form, HasError, AlertError } from 'vform';
 
 /**
@@ -14,6 +15,10 @@ import { Form, HasError, AlertError } from 'vform';
 
 window._ = require('lodash');
 
+global.moment = require('moment');
+require('tempusdominus-bootstrap-4');
+import 'tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css';
+
 /**
  * We'll load jQuery plugin which provides support
  * for JavaScript based features.
@@ -22,6 +27,7 @@ window._ = require('lodash');
 try {
     window.$ = windows.jQuery = require('jquery');
 } catch (e) {}
+
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -67,13 +73,29 @@ if (token) {
 window.Vue = require('vue');
 window.swal = Swal;
 
+const options = {
+    color: '#0062cc',
+    failedColor: '#874b4b',
+    thickness: '5px',
+    transition: {
+        speed: '0.5s',
+        opacity: '0.6s',
+        termination: 1000
+    },
+    autoRevert: true,
+    location: 'top',
+    inverse: false
+};
+
 Vue.use(VueRouter);
+Vue.use(VueProgressBar, options);
 
 window.Form = Form;
 Vue.component(HasError.name, HasError);
 Vue.component(AlertError.name, AlertError);
 Vue.component('editor', Editor);
 Vue.component('v-select', vSelect);
+Vue.component('pagination', require('laravel-vue-pagination'));
 
 /**
  * The following block of code may be used to automatically register your
@@ -94,7 +116,10 @@ const routes = [
     { path: '/admin/posts', component: require('./components/PostComponent.vue').default },
     { path: '/admin/posts/create', component: require('./components/AddOrEditPostComponent.vue').default },
     { path: '/admin/posts/edit/:postId', component: require('./components/AddOrEditPostComponent.vue').default },
-    { path: '/admin/posts/view/:postId', component: require('./components/ViewPostComponent.vue').default }
+    { path: '/admin/posts/view/:postId', component: require('./components/ViewPostComponent.vue').default },
+    { path: '/admin/users', component: require('./components/UserComponent.vue').default },
+    { path: '/admin/users/view/:userId', component: require('./components/ViewUserComponent.vue').default },
+    { path: '/admin/user/settings', component: require('./components/EditUserComponent.vue').default },
 ];
 
 const router = new VueRouter({

@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 
-class IsAdmin
+class IsBanned
 {
     /**
      * Handle an incoming request.
@@ -15,7 +15,8 @@ class IsAdmin
      */
     public function handle($request, Closure $next)
     {
-        if (auth()->check() && auth()->user()->is_admin == false) {
+        if (auth()->check() && auth()->user()->is_blocked == true) {
+            auth()->logout();
             return redirect('/');
         }
         return $next($request);

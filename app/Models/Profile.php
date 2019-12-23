@@ -12,4 +12,26 @@ class Profile extends Model
      * @var string
      */
     protected $table = 'profiles';
+
+    protected $primaryKey = 'user_id';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'birth_date', 'gender', 'mobile_number', 'blood_group', 'bio', 'profile_picture_url', 'contribution_point'
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'birth_date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 }

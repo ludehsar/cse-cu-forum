@@ -1,5 +1,5 @@
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+<nav class="navbar navbar-expand-lg bg-dark navbar-light fixed-top" id="mainNav">
     <div class="container">
         <a class="navbar-brand" href="/">
             CSE CU Forum
@@ -11,13 +11,16 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.html">Home</a>
+                    <a class="nav-link" href="{{ route('home') }}">Home</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="post.html">Categories</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="post.html">Tags</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contact us</a>
                 </li>
                 <!-- Authentication Links -->
                 @guest
@@ -28,9 +31,14 @@
                         <a class="nav-link" href="{{ route('register') }}">Register</a>
                     </li>
                 @else
+                    @if (Auth::user()->is_admin == true)
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('admin', 'admin') }}">Admin Panel</a>
+                        </li>
+                    @endif
                     <li class="nav-item dropdown">
                         <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                            {{ Auth::user()->name }} <span class="caret"></span>
+                            {{ Auth::user()->username }} <span class="caret"></span>
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
@@ -39,8 +47,7 @@
                             <a class="dropdown-item" href="#">Settings</a>
 
                             <a class="dropdown-item" href="{{ route('logout') }}"
-                            onclick="event.preventDefault();
-                                            document.getElementById('logout-form').submit();">
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 Logout
                             </a>
 

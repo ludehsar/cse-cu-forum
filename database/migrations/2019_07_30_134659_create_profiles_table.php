@@ -16,12 +16,12 @@ class CreateProfilesTable extends Migration
         Schema::create('profiles', function (Blueprint $table) {
             $table->unsignedBigInteger('user_id')->unique();
             $table->foreign('user_id')->references('id')->on('users');
-            $table->timestamp('birth_date');
-            $table->enum('gender', ['Male', 'Female', 'Other']);
-            $table->string('mobile_number');
-            $table->enum('blood_group', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']);
+            $table->timestamp('birth_date')->nullable();
+            $table->enum('gender', ['Male', 'Female', 'Other'])->nullable();
+            $table->string('mobile_number')->nullable();
+            $table->enum('blood_group', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])->nullable();
             $table->text('bio')->nullable();
-            $table->string('profile_picture_url')->nullable();
+            $table->string('profile_picture_url')->default('/photos/shares/profile.png');
             $table->integer('contribution_point')->default(0);
             $table->timestamps();
         });

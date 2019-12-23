@@ -36,6 +36,8 @@
                         @include('backend.parts.navbar')
                         
                         <router-view></router-view>
+
+                        <vue-progress-bar></vue-progress-bar>
                     </div>
                     <!-- End of Main Content -->
 
@@ -65,5 +67,6 @@
         <script src="{{ asset('backend/vendor/datatables/jquery.dataTables.min.js') }}"></script>
         <script src="{{ asset('backend/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
         <script src="{{ asset('backend/js/sb-admin-2.min.js') }}"></script>
+        <script src="https://cdn.rawgit.com/cretueusebiu/412715093d6e8980e7b176e9de663d97/raw/aea128d8d15d5f9f2d87892fb7d18b5f6953e952/objectToFormData.js"></script>
     </body>
 </html>

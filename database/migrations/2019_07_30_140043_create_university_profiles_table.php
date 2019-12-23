@@ -18,7 +18,7 @@ class CreateUniversityProfilesTable extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->boolean('is_teacher')->default(0);
             $table->string('student_id')->nullable();
-            $table->string('department');
+            $table->string('department')->nullable();
             $table->string('ongoing_degree')->nullable();
             $table->string('session')->nullable();
             $table->string('alloted_hall')->nullable();

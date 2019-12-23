@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Post;
 use App\Models\User;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -42,5 +43,14 @@ class Category extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function delete()    
+    {
+        DB::transaction(function() 
+        {
+            $this->posts()->delete();
+            parent::delete();
+        });
     }
 }

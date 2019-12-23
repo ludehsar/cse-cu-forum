@@ -18,7 +18,7 @@
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 
         <!-- Custom styles for this template -->
-        <link href="{{ asset('frontend/css/clean-blog.min.css') }}" rel="stylesheet">
+        <link href="{{ asset('frontend/css/clean-blog.css') }}" rel="stylesheet">
 
         <!-- Core js !important -->
         <script src="{{ asset('js/app.js') }}" async defer></script>
@@ -28,7 +28,9 @@
 
         <div id="app">
             @include('frontend.parts.navbar')
-            @yield('content')        
+            <div style="margin-top: 120px;">
+                @yield('content')        
+            </div>
         </div>
         
         <hr>
@@ -48,6 +50,6 @@
         <script src="{{ asset('frontend/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
         <!-- Custom scripts for this template -->
-        <script src="{{ asset('frontend/js/clean-blog.min.js') }}"></script>
+        <script src="{{ asset('frontend/js/clean-blog.js') }}"></script>
     </body>
 </html>

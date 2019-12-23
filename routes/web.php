@@ -18,6 +18,6 @@ Route::get('/', function () {
 Auth::routes(['verify' => true]);
 
 Route::group(['middleware' => 'verified'], function () {
-    Route::get('{path}', ['uses' => 'AdminPanelStaticController@index', 'as' => 'admin'])->where('path', '([A-z\d\-\/_.]+)?');
+    Route::get('{path}', ['uses' => 'AdminPanelStaticController@index', 'as' => 'admin'])->where('path', '([A-z\d\-\/_.]+)?')->middleware('admin');
 });
 

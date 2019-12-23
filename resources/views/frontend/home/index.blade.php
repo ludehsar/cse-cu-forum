@@ -3,26 +3,11 @@
 @section('title', 'Home')
 
 @section('content')
-    <!-- Page Header -->
-    <header class="masthead" style="background-image: url('frontend/img/home-bg.jpg')">
-        <div class="overlay"></div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 col-md-10 mx-auto">
-                    <div class="site-heading">
-                        <h1>CSE CU Forum</h1>
-                        <span class="subheading text-capitalize">Inspire the future and lead the generation</span>
-                        <button class="btn btn-outline-light m-4">Launch Admin Panel</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
 
     <!-- Main Content -->
     <div class="container">
         <div class="row">
-            <div class="col-lg-9 col-md-10 mx-auto">
+            <div class="col-lg-12 col-md-12 mx-auto">
                 <div class="clearfix">
                     <a class="btn btn-primary float-right" href="#">Create New Post</a>
                 </div>
