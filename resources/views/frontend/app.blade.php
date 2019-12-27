@@ -1,55 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
         <meta charset="utf-8">
-        <meta name="author" content="">
-        <meta name="description" content="">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>CSE CU Forum - @yield('title')</title>
-
-        <!-- Bootstrap core CSS -->
-        <link href="{{ asset('frontend/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-
-        <!-- Custom fonts for this template -->
-        <link href="{{ asset('frontend/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
-
-        <!-- Custom styles for this template -->
-        <link href="{{ asset('frontend/css/clean-blog.css') }}" rel="stylesheet">
-
-        <!-- Core js !important -->
-        <script src="{{ asset('js/app.js') }}" async defer></script>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="all,follow">
+        <!-- Bootstrap CSS-->
+        <link rel="stylesheet" href="{{asset('frontend/vendor/bootstrap/css/bootstrap.min.css') }}">
+        <!-- Font Awesome CSS-->
+        <link rel="stylesheet" href="{{ asset('frontend/vendor/font-awesome/css/font-awesome.min.css') }}">
+        <!-- Custom icon font-->
+        <link rel="stylesheet" href="{{ asset('frontend/css/fontastic.css') }}">
+        <!-- Google fonts - Open Sans-->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+        <!-- Fancybox-->
+        <link rel="stylesheet" href="{{ asset('frontend/vendor/@fancyapps/fancybox/jquery.fancybox.min.css') }}">
+        <!-- theme stylesheet-->
+        <link rel="stylesheet" href="{{ asset('frontend/css/style.default.css') }}" id="theme-stylesheet">
+        <!-- Custom stylesheet - for your changes-->
+        <link rel="stylesheet" href="{{ asset('frontend/css/custom.css') }}">
+        <!-- Favicon-->
+        <link rel="shortcut icon" href="favicon.png">
+        <!-- Tweaks for older IEs--><!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+            <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
     </head>
-
     <body>
-
-        <div id="app">
-            @include('frontend.parts.navbar')
-            <div style="margin-top: 120px;">
-                @yield('content')        
-            </div>
-        </div>
-        
-        <hr>
-        
-        <!-- Footer -->
-        <footer class="sticky-footer bg-white">
-            <div class="container my-auto">
-                <div class="copyright text-center my-auto">
-                    <span>Copyright &copy; CSE CU Forum {{ date('Y') }}</span>
-                </div>
-            </div>
-        </footer>
-        <!-- End of Footer -->
-
-        <!-- Bootstrap core JavaScript -->
+        @include('frontend.parts.navbar')
+            @auth
+                @if (Auth::user()->email_verified_at == NULL)
+                    <section class="notification">
+                        <div class="alert alert-primary" role="alert">
+                            <strong>Your email has not been verified. </strong>
+                            <a href="{{ route('verification.resend') }}">Click here to verify your email</a>.
+                        </div>
+                        @if (session('resent'))
+                            <div class="alert alert-success" role="alert">
+                                A fresh verification link has been sent to your email address.
+                            </div>
+                        @endif
+                    </section>
+                @endif
+            @endauth
+        @yield('content')
+        @include('frontend.parts.footer')
+        <!-- JavaScript files-->
         <script src="{{ asset('frontend/vendor/jquery/jquery.min.js') }}"></script>
-        <script src="{{ asset('frontend/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-        <!-- Custom scripts for this template -->
-        <script src="{{ asset('frontend/js/clean-blog.js') }}"></script>
+        <script src="{{ asset('frontend/vendor/popper.js/umd/popper.min.js') }}"> </script>
+        <script src="{{ asset('frontend/vendor/bootstrap/js/bootstrap.min.js') }}"></script>
+        <script src="{{ asset('frontend/vendor/jquery.cookie/jquery.cookie.js') }}"> </script>
+        <script src="{{ asset('frontend/vendor/@fancyapps/fancybox/jquery.fancybox.min.js') }} "></script>
+        <script src="https://kit.fontawesome.com/7cf490feed.js" crossorigin="anonymous"></script>
+        <script src="{{ asset('frontend/js/front.js') }}"></script>
+        <script src="{{ asset('js/frontend.js') }}"></script>
     </body>
 </html>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use App\Models\FrontendPost;
 use Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
 
@@ -48,6 +49,13 @@ class PostAPIController extends Controller
             })
             ->rawColumns(['created_by', 'category', 'status', 'action'])
             ->make(true);
+    }
+
+    public function getFrontendPosts()
+    {
+        $posts = FrontendPost::latest();
+
+        return response($posts->paginate(20), 200);
     }
 
     /**

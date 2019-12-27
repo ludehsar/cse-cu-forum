@@ -1,0 +1,279 @@
+function SinglePostReview(props) {
+    return (
+        <div className="row d-flex align-items-stretch">
+            <div className="text w-100">
+                <div className="text-inner d-flex align-items-center">
+                    <div className="content">
+                        <header className="post-header">
+                            <div className="category"><a href="#">{props.category_name}</a></div>
+                            <a href={"/posts/" + props.slug}><h2 className="h4">{props.title}</h2></a>
+                        </header>
+                        <p>{props.subtitle}</p>
+                        <footer className="post-footer d-flex align-items-center">
+                            <div className="date"><i className="icon-clock"></i> {props.created_at}</div>
+                            <div className="contributions"> <i className="fab fa-cuttlefish"></i> {props.total_contribution} contribuions</div>
+                            <div className="love"><i className="far fa-grin-hearts"></i> {props.total_love}</div>
+                            <div className="wow"><i className="far fa-grin-stars"></i> {props.total_wow}</div>
+                            <div className="haha"><i className="far fa-laugh-squint"></i> {props.total_haha}</div>
+                            <div className="angry"><i className="far fa-angry"></i> {props.total_angry}</div>
+                            <div className="comments"><i className="icon-comment"></i>{props.total_comments} comments</div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+class ProfileComponent extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            posts: [],
+            categories: [],
+            user: {},
+            userId: props.userId,
+            activePage: 1,
+            itemsCountPerPage: 1,
+            totalItemsCount: 1,
+        }
+    }
+
+    async componentDidMount() {
+        axios.get('/api/users/' + this.state.userId + '/complete').then((response) => {
+            this.setState({user: response.data});
+        });
+
+        this.handlePageChange();
+    }
+
+    handlePageChange = async (pageNumber = 1) => {
+        axios.get('/api/users/' + this.state.userId + '/posts').then((response) => {
+            this.setState({
+                posts: response.data.data,
+                activePage: response.data.current_page,
+                itemsCountPerPage: response.data.per_page,
+                totalItemsCount: response.data.total
+            });
+        });
+    }
+
+    render() {
+        return (
+            <React.Fragment>
+                <div className="profile">
+                    <div className="row">
+                        <div className="col-md-4">
+                            <div className="profile-img">
+                                <img src={this.state.user.profile_picture_url} className="img-thumbnail" />
+                            </div>
+                        </div>
+                        <div className="col-md-8">
+                            <div className="user-details">
+                                <h2>{this.state.user.name}</h2>
+                                <h3>{this.state.user.username}</h3>
+                                <div className="mobile">Mobile number:
+                                    {(this.state.user.mobile_number) ? (
+                                        <strong> {this.state.user.mobile_number}</strong>
+                                    ) : (
+                                        <strong> None</strong>
+                                    )}
+                                </div>
+                                <div className="blood-group">Blood group:
+                                    {(this.state.user.mobile_number) ? (
+                                        <strong> {this.state.user.blood_group}</strong>
+                                    ) : (
+                                        <strong> None</strong>
+                                    )}
+                                </div>
+                                <div className="blood-group">Contribution point:
+                                    {(this.state.user.contribution_point) ? (
+                                        <strong> {this.state.user.contribution_point}</strong>
+                                    ) : (
+                                        <strong> 0</strong>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="row p-5">
+                        <div className="col-md-12">
+                            {(this.state.user.bio) ? (
+                                <div className="mt-3" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.user.bio)}}></div>
+                            ) : (
+                                <div className="mt-3">No bio</div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-md-12">
+                            <ul className="nav nav-tabs" id="myTab" role="tablist">
+                                <li className="nav-item">
+                                    <a className="nav-link active" id="about-tab" data-toggle="tab" href="#about" role="tab" aria-controls="about" aria-selected="true">About</a>
+                                </li>
+                                <li className="nav-item">
+                                    <a className="nav-link" id="post-tab" data-toggle="tab" href="#post" role="tab" aria-controls="post" aria-selected="false">Posts</a>
+                                </li>
+                            </ul>
+                            <div className="tab-content profile-tab" id="myTabContent">
+                                <div className="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>Email</strong>
+                                        </div>
+                                        <div className="col-md-8">
+                                            <p>{this.state.user.email}</p>
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>Gender</strong>
+                                        </div>
+                                        <div className="col-md-8">
+                                            {(this.state.user.gender) ? (
+                                                <p>{this.state.user.gender}</p>
+                                            ) : (
+                                                <p>Not specified</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>Date of birth</strong>
+                                        </div>
+                                        <div className="col-md-8">
+                                            {(this.state.user.birth_date) ? (
+                                                <p>{this.state.user.birth_date}</p>
+                                            ) : (
+                                                <p>Not specified</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>Role</strong>
+                                        </div>
+                                        <div className="col-md-8">
+                                            {(this.state.user.is_teacher) ? (
+                                                <p>Teacher</p>
+                                            ) : (
+                                                <p>Student</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {(!this.state.user.is_teacher) && (
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <strong>Student ID</strong>
+                                            </div>
+                                            <div className="col-md-8">
+                                                {(this.state.user.student_id) ? (
+                                                    <p>{this.state.user.student_id}</p>
+                                                ) : (
+                                                    <p>Not specified</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="row">
+                                        <div className="col-md-4">
+                                            <strong>Department</strong>
+                                        </div>
+                                        <div className="col-md-8">
+                                            {(this.state.user.department) ? (
+                                                <p>{this.state.user.department}</p>
+                                            ) : (
+                                                <p>Not specified</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {(!this.state.user.is_teacher) && (
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <strong>Ongoing degree</strong>
+                                            </div>
+                                            <div className="col-md-8">
+                                                {(this.state.user.ongoing_degree) ? (
+                                                    <p>{this.state.user.ongoing_degree}</p>
+                                                ) : (
+                                                    <p>Not specified</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(!this.state.user.is_teacher) && (
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <strong>Session</strong>
+                                            </div>
+                                            <div className="col-md-8">
+                                                {(this.state.user.session) ? (
+                                                    <p>{this.state.user.session}</p>
+                                                ) : (
+                                                    <p>Not specified</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(!this.state.user.is_teacher) && (
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <strong>Alloted hall</strong>
+                                            </div>
+                                            <div className="col-md-8">
+                                                {(this.state.user.alloted_hall) ? (
+                                                    <p>{this.state.user.alloted_hall}</p>
+                                                ) : (
+                                                    <p>Not specified</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="tab-pane fade" id="post" role="tabpanel" area-labelledby="post-tab">
+                                {this.state.posts.map((post) =>
+                                        <SinglePostReview
+                                            key={post.id}
+                                            category_name={post.category_name}
+                                            slug={post.slug}
+                                            title={post.title}
+                                            subtitle={post.subtitle}
+                                            created_at={moment.utc(post.created_at).fromNow()}
+                                            total_contribution={post.total_contribution}
+                                            total_love={post.total_love}
+                                            total_wow={post.total_wow}
+                                            total_haha={post.total_haha}
+                                            total_angry={post.total_angry}
+                                            total_comments={post.total_comments}
+                                        />
+                                    )}
+                                    <div className="clearfix mb-3">
+                                        <Pagination
+                                            activePage={this.state.activePage}
+                                            itemsCountPerPage={this.state.itemsCountPerPage}
+                                            totalItemsCount={this.state.totalItemsCount}
+                                            pageRangeDisplayed={5}
+                                            innerClass="pagination pagination-template d-flex justify-content-center"
+                                            itemClass='page-item'
+                                            linkClass='page-link'
+                                            onChange={this.handlePageChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </React.Fragment>
+        );
+    }
+}
+
+export default ProfileComponent;
+
+var rootElement = document.getElementById('profile');
+
+if (rootElement) {
+    ReactDOM.render(<ProfileComponent userId={rootElement.getAttribute('data-user-id')} />, rootElement);
+}

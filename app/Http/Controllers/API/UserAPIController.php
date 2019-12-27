@@ -90,7 +90,7 @@ class UserAPIController extends Controller
 
     public function getPosts(int $id)
     {
-        $posts = User::findOrFail($id)->posts()->latest();
+        $posts = FrontendPost::where('user_id', $id)->where('is_published', true)->latest();
 
         return response($posts->paginate(3), 200);
     }
@@ -168,12 +168,9 @@ class UserAPIController extends Controller
 
             Image::make($file)->save( public_path($save_path . '/' . $filename) );
 
-            $userProfile = Profile::firstOrNew(array('user_id' => $user->id));
+            $user->profile_picture_url = '/' . $save_path . '/' . $filename;
 
-            $userProfile->user_id = $user->id;
-            $userProfile->profile_picture_url = '/' . $save_path . '/' . $filename;
-
-            $userProfile->save();
+            $user->save();
         }
 
         return response(null, 200);

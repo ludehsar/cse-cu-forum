@@ -20,6 +20,7 @@ class CreateUsersTable extends Migration
             $table->boolean('is_verified')->default(0);
             $table->boolean('is_admin')->default(0);
             $table->boolean('is_blocked')->default(0);
+            $table->string('profile_picture_url')->default('/photos/shares/profile.png');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

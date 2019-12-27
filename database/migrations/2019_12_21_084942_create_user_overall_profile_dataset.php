@@ -17,7 +17,7 @@ class CreateUserOverallProfileDataset extends Migration
                 CREATE VIEW user_overall_profile_dataset AS
                 (
                         SELECT u.id, u.name, u.username, u.is_verified, u.is_admin, u.is_blocked, u.email,
-                                p.birth_date, p.gender, p.mobile_number, p.blood_group, p.bio, p.profile_picture_url, p.contribution_point,
+                                p.birth_date, p.gender, p.mobile_number, p.blood_group, p.bio, u.profile_picture_url, p.contribution_point,
                                 up.is_teacher, up.student_id, up.department, up.ongoing_degree, up.session, up.alloted_hall
                         
                         FROM users u

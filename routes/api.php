@@ -34,31 +34,36 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::put('/users/{id}/tfs', ['uses' => 'API\UserAPIController@updateTeacherFromStudent']);
     });
     
-    // Categories
-    Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
-    Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
-
-    // Tags
-    Route::get('/tags/all', ['uses' => 'API\TagAPIController@getAllTags']);
-    Route::get('/tags/{id}', ['uses' => 'API\TagAPIController@getTag']);
-
     // Posts
-    Route::get('/posts/all', ['uses' => 'API\PostAPIController@getAllPosts']);
-    Route::get('/posts/{id}', ['uses' => 'API\PostAPIController@getPost']);
-    Route::get('/posts/{id}/tags', ['uses' => 'API\PostAPIController@getPostTags']);
     Route::post('/posts/create/new', ['uses' => 'API\PostAPIController@addPost']);
     Route::put('/posts/edit/{id}', ['uses' => 'API\PostAPIController@editPost']);
     Route::delete('/posts/delete/{id}', ['uses' => 'API\PostAPIController@deletePost']);
     
     // Users
-    Route::get('/users/all', ['uses' => 'API\UserAPIController@getAllUsers']);
     Route::get('/user', ['uses' => 'API\UserAPIController@getCurrentUser']);
-    Route::get('/users/{id}', ['uses' => 'API\UserAPIController@getUser']);
-    Route::get('/users/{id}/complete', ['uses' => 'API\UserAPIController@getUserCompleteProfile']);
-    Route::get('/users/{id}/posts', ['uses' => 'API\UserAPIController@getPosts']);
     Route::post('/user/upload', ['uses' => 'API\UserAPIController@uploadProfilePicture']);
     Route::post('/user/bio', ['uses' => 'API\UserAPIController@updateBio']);
     Route::post('/user/change_password', ['uses' => 'API\UserAPIController@updatePassword']);
     Route::post('/user/change_profile', ['uses' => 'API\UserAPIController@updateProfile']);
     Route::post('/user/change_university_profile', ['uses' => 'API\UserAPIController@updateUniversityProfile']);
 });
+
+// Categories
+Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
+Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
+
+// Tags
+Route::get('/tags/all', ['uses' => 'API\TagAPIController@getAllTags']);
+Route::get('/tags/{id}', ['uses' => 'API\TagAPIController@getTag']);
+
+// Posts
+Route::get('/posts/all', ['uses' => 'API\PostAPIController@getAllPosts']);
+Route::get('/posts/frontend', ['uses' => 'API\PostAPIController@getFrontendPosts']);
+Route::get('/posts/{id}', ['uses' => 'API\PostAPIController@getPost']);
+Route::get('/posts/{id}/tags', ['uses' => 'API\PostAPIController@getPostTags']);
+
+// Users
+Route::get('/users/all', ['uses' => 'API\UserAPIController@getAllUsers']);
+Route::get('/users/{id}', ['uses' => 'API\UserAPIController@getUser']);
+Route::get('/users/{id}/complete', ['uses' => 'API\UserAPIController@getUserCompleteProfile']);
+Route::get('/users/{id}/posts', ['uses' => 'API\UserAPIController@getPosts']);

@@ -110,16 +110,16 @@ Vue.component('pagination', require('laravel-vue-pagination'));
 
 const routes = [
     { path: '/admin', redirect: '/admin/dashboard' },
-    { path: '/admin/dashboard', component: require('./components/DashboardComponent.vue').default },
-    { path: '/admin/categories', component: require('./components/CategoryComponent.vue').default },
-    { path: '/admin/tags', component: require('./components/TagComponent.vue').default },
-    { path: '/admin/posts', component: require('./components/PostComponent.vue').default },
-    { path: '/admin/posts/create', component: require('./components/AddOrEditPostComponent.vue').default },
-    { path: '/admin/posts/edit/:postId', component: require('./components/AddOrEditPostComponent.vue').default },
-    { path: '/admin/posts/view/:postId', component: require('./components/ViewPostComponent.vue').default },
-    { path: '/admin/users', component: require('./components/UserComponent.vue').default },
-    { path: '/admin/users/view/:userId', component: require('./components/ViewUserComponent.vue').default },
-    { path: '/admin/user/settings', component: require('./components/EditUserComponent.vue').default },
+    { path: '/admin/dashboard', component: require('./components/backend/DashboardComponent.vue').default },
+    { path: '/admin/categories', component: require('./components/backend/CategoryComponent.vue').default },
+    { path: '/admin/tags', component: require('./components/backend/TagComponent.vue').default },
+    { path: '/admin/posts', component: require('./components/backend/PostComponent.vue').default },
+    { path: '/admin/posts/create', component: require('./components/backend/AddOrEditPostComponent.vue').default },
+    { path: '/admin/posts/edit/:postId', component: require('./components/backend/AddOrEditPostComponent.vue').default },
+    { path: '/admin/posts/view/:postId', component: require('./components/backend/ViewPostComponent.vue').default },
+    { path: '/admin/users', component: require('./components/backend/UserComponent.vue').default },
+    { path: '/admin/users/view/:userId', component: require('./components/backend/ViewUserComponent.vue').default },
+    { path: '/admin/user/settings', component: require('./components/backend/EditUserComponent.vue').default },
 ];
 
 const router = new VueRouter({

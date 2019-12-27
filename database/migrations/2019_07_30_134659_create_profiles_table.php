@@ -21,7 +21,6 @@ class CreateProfilesTable extends Migration
             $table->string('mobile_number')->nullable();
             $table->enum('blood_group', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])->nullable();
             $table->text('bio')->nullable();
-            $table->string('profile_picture_url')->default('/photos/shares/profile.png');
             $table->integer('contribution_point')->default(0);
             $table->timestamps();
         });

@@ -1,55 +1,42 @@
-@extends('auth.app')
+@extends('frontend.app')
 
 @section('title', 'Sign up')
 
 @section('content')
-<div class="wrap-login100">
-    <div class="login100-form-title" style="background-image: url({{ asset('auth/images/bg-01.jpg') }});">
-        <span class="login100-form-title-1">
-            Sign Up
-        </span>
+<section>
+    <div class="container mt-5 mb-5">
+        @foreach ($errors->all() as $error)
+            <div class="alert alert-danger">{{ $error }}</div>
+        @endforeach
+        <div class="col-lg-10 mx-auto">
+            <form method="POST" action="{{ route('register') }}">
+                @csrf
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Please enter your full name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Please enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Please enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirm-password" name="password_confirmation" placeholder="Confirm your password">
+                </div>
+                <div class="form-group clearfix d-flex justify-content-center">
+                    <button type="submit" class="btn btn-danger">Sign up</button>
+                </div>
+            </form>
+        </div>
     </div>
-    @foreach ($errors->all() as $error)
-        <div class="alert alert-danger">{{ $error }}</div>
-    @endforeach
-    <form class="login100-form validate-form" method="POST" action="{{ route('register') }}">
-        @csrf
-        <div class="wrap-input100 validate-input m-b-26" data-validate="Name is required">
-            <span class="label-input100">Full Name</span>
-                <input class="input100" type="text" name="name" placeholder="Enter your full name">
-            <span class="focus-input100"></span>
-        </div>
-
-        <div class="wrap-input100 validate-input m-b-26" data-validate="Email is required">
-            <span class="label-input100">Email</span>
-                <input class="input100" type="email" name="email" placeholder="Enter your email address">
-            <span class="focus-input100"></span>
-        </div>
-
-        <div class="wrap-input100 validate-input m-b-26" data-validate="Username is required">
-            <span class="label-input100">Username</span>
-                <input class="input100" type="text" name="username" placeholder="Enter username">
-            <span class="focus-input100"></span>
-        </div>
-
-        <div class="wrap-input100 validate-input m-b-18" data-validate = "Password is required">
-            <span class="label-input100">Password</span>
-                <input class="input100" type="password" name="password" placeholder="Enter password">
-            <span class="focus-input100"></span>
-        </div>
-
-        <div class="wrap-input100 validate-input m-b-18" data-validate = "Confirm Password">
-            <span class="label-input100">Confirm Password</span>
-                <input class="input100" type="password" name="password_confirmation" placeholder="Confirm password">
-            <span class="focus-input100"></span>
-        </div>
-
-        <div class="container-login100-form-btn">
-            <button class="login100-form-btn">
-                Sign Up
-            </button>
-        </div>
-    </form>
-</div>
+</section>
 @endsection
 

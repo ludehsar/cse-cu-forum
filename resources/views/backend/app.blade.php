@@ -8,7 +8,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>CSE CU Forum Admin Panel - @yield('title')</title>
+        <title>CSE CU Forum Admin Panel</title>
 
         <link href="{{ asset('backend/css/sb-admin-2.min.css') }}" rel="stylesheet">
         <link href="{{ asset('backend/vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
