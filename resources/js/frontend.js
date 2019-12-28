@@ -5,19 +5,23 @@ import React, { Component } from 'react';
 import 'sweetalert2/src/sweetalert2.scss';
 import Pagination from "react-js-pagination";
 import { Editor } from '@tinymce/tinymce-react';
+import LazyLoad from 'react-lazyload';
+import Datetime from 'react-datetime';
+import 'react-datetime/css/react-datetime.css';
 
+window.swal = Swal;
 window.React = React;
+window.Editor = Editor;
+window.LazyLoad = LazyLoad;
+window.Datetime = Datetime;
 window.ReactDOM = ReactDOM;
 window.Component = Component;
-window.Pagination = Pagination;
 window.DOMPurify = DOMPurify;
-window.Editor = Editor;
+window.Pagination = Pagination;
 
 window._ = require('lodash');
 
 global.moment = require('moment');
-require('tempusdominus-bootstrap-4');
-import 'tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css';
 
 try {
     window.$ = windows.jQuery = require('jquery');
@@ -52,12 +56,13 @@ if (token) {
 //     encrypted: true
 // });
 
-window.swal = Swal;
 
 /**
  * In frontend, we will use reactjs
  */
+
 require('./components/frontend/HomepageComponent');
 require('./components/frontend/PostFormComponent');
 require('./components/frontend/ShowPostComponent');
 require('./components/frontend/ProfileComponent');
+require('./components/frontend/SettingsComponent');

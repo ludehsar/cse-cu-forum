@@ -50,4 +50,18 @@ class HomeStaticController extends Controller
 
         return view('frontend.profile.profile', compact(['userId', 'name']));
     }
+
+    public function showSettings()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect('/');
+        }
+
+        $userId = $user->id;
+        $name = $user->name;
+
+        return view('frontend.profile.settings', compact(['userId', 'name']));
+    }
 }

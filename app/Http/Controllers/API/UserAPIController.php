@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Profile;
 use Illuminate\Http\Request;
+use App\Models\FrontendPost;
 use Yajra\Datatables\Datatables;
 use App\Models\UniversityProfile;
 use App\Models\UserOverallProfile;
@@ -90,7 +91,8 @@ class UserAPIController extends Controller
 
     public function getPosts(int $id)
     {
-        $posts = FrontendPost::where('user_id', $id)->where('is_published', true)->latest();
+        $user = User::findOrFail($id);
+        $posts = FrontendPost::where('username', $user->username)->where('is_published', true)->latest();
 
         return response($posts->paginate(3), 200);
     }

@@ -66,7 +66,9 @@ class ProfileComponent extends Component {
                     <div className="row">
                         <div className="col-md-4">
                             <div className="profile-img">
-                                <img src={this.state.user.profile_picture_url} className="img-thumbnail" />
+                                <LazyLoad once>
+                                    <img src={this.state.user.profile_picture_url} className="img-thumbnail" />
+                                </LazyLoad>
                             </div>
                         </div>
                         <div className="col-md-8">
@@ -97,12 +99,12 @@ class ProfileComponent extends Component {
                             </div>
                         </div>
                     </div>
-                    <div className="row p-5">
+                    <div className="row p-3">
                         <div className="col-md-12">
                             {(this.state.user.bio) ? (
-                                <div className="mt-3" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.user.bio)}}></div>
+                                <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.user.bio)}}></div>
                             ) : (
-                                <div className="mt-3">No bio</div>
+                                <p>No bio</p>
                             )}
                         </div>
                     </div>
@@ -232,21 +234,23 @@ class ProfileComponent extends Component {
                                     )}
                                 </div>
                                 <div className="tab-pane fade" id="post" role="tabpanel" area-labelledby="post-tab">
-                                {this.state.posts.map((post) =>
-                                        <SinglePostReview
-                                            key={post.id}
-                                            category_name={post.category_name}
-                                            slug={post.slug}
-                                            title={post.title}
-                                            subtitle={post.subtitle}
-                                            created_at={moment.utc(post.created_at).fromNow()}
-                                            total_contribution={post.total_contribution}
-                                            total_love={post.total_love}
-                                            total_wow={post.total_wow}
-                                            total_haha={post.total_haha}
-                                            total_angry={post.total_angry}
-                                            total_comments={post.total_comments}
-                                        />
+                                    {this.state.posts.map((post) =>
+                                        <LazyLoad key={post.id}>
+                                            <SinglePostReview
+                                                key={post.id}
+                                                category_name={post.category_name}
+                                                slug={post.slug}
+                                                title={post.title}
+                                                subtitle={post.subtitle}
+                                                created_at={moment.utc(post.created_at).fromNow()}
+                                                total_contribution={post.total_contribution}
+                                                total_love={post.total_love}
+                                                total_wow={post.total_wow}
+                                                total_haha={post.total_haha}
+                                                total_angry={post.total_angry}
+                                                total_comments={post.total_comments}
+                                            />
+                                        </LazyLoad>
                                     )}
                                     <div className="clearfix mb-3">
                                         <Pagination

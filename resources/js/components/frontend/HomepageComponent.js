@@ -60,22 +60,24 @@ class HomepageComponent extends Component {
             <React.Fragment>
                 <div className="container">
                     {this.state.posts.map((post) =>
-                        <SinglePostReview
-                            key={post.id}
-                            category_name={post.category_name}
-                            slug={post.slug}
-                            title={post.title}
-                            subtitle={post.subtitle}
-                            user_profile_picture_url={post.user_profile_picture_url}
-                            username={post.username}
-                            created_at={moment.utc(post.created_at).fromNow()}
-                            total_contribution={post.total_contribution}
-                            total_love={post.total_love}
-                            total_wow={post.total_wow}
-                            total_haha={post.total_haha}
-                            total_angry={post.total_angry}
-                            total_comments={post.total_comments}
-                        />
+                        <LazyLoad key={post.id}>
+                            <SinglePostReview
+                                key={post.id}
+                                category_name={post.category_name}
+                                slug={post.slug}
+                                title={post.title}
+                                subtitle={post.subtitle}
+                                user_profile_picture_url={post.user_profile_picture_url}
+                                username={post.user_full_name}
+                                created_at={moment.utc(post.created_at).fromNow()}
+                                total_contribution={post.total_contribution}
+                                total_love={post.total_love}
+                                total_wow={post.total_wow}
+                                total_haha={post.total_haha}
+                                total_angry={post.total_angry}
+                                total_comments={post.total_comments}
+                            />
+                        </LazyLoad>
                     )}
                     <div className="clearfix">
                         <Pagination

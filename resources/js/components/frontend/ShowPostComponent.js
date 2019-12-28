@@ -50,42 +50,44 @@ class ShowPostComponent extends Component {
     render() {
         return (
             <React.Fragment>
-                <div className="row">
-                    <main className="post blog-post"> 
-                        <div className="container">
-                            <div className="post-single">
-                                <div className="post-details">
-                                    <div className="post-meta d-flex justify-content-between">
-                                        <div className="category"><a href="#">{this.state.category.name}</a></div>
-                                    </div>
-                                    <h1>{this.state.post.title}</h1>
-                                    <div className="post-footer d-flex align-items-center flex-column flex-sm-row">
-                                        <a href="#" className="author d-flex align-items-center flex-wrap">
-                                            <div className="avatar"><img src={this.state.user.profile_picture_url} alt="..." className="img-fluid" /></div>
-                                            <div className="title"><span>{this.state.user.name}</span></div>
-                                        </a>
-                                        <div className="d-flex align-items-center flex-wrap">       
-                                            <div className="date"><i className="icon-clock"></i> {moment.utc(this.state.post.created_at).fromNow()}</div>
-                                            <div className="contributions"> <i className="fab fa-cuttlefish"></i> {this.state.post.total_contribution} contribuions</div>
-                                            <div className="love"><i className="far fa-grin-hearts"></i> {this.state.post.total_love}</div>
-                                            <div className="wow"><i className="far fa-grin-stars"></i> {this.state.post.total_wow}</div>
-                                            <div className="haha"><i className="far fa-laugh-squint"></i> {this.state.post.total_haha}</div>
-                                            <div className="angry"><i className="far fa-angry"></i> {this.state.post.total_angry}</div>
-                                            <div className="comments meta-last"><i className="icon-comment"></i>{23} comments</div>
+                <LazyLoad>
+                    <div className="row">
+                        <main className="post blog-post"> 
+                            <div className="container">
+                                <div className="post-single">
+                                    <div className="post-details">
+                                        <div className="post-meta d-flex justify-content-between">
+                                            <div className="category"><a href="#">{this.state.category.name}</a></div>
                                         </div>
+                                        <h1>{this.state.post.title}</h1>
+                                        <div className="post-footer d-flex align-items-center flex-column flex-sm-row">
+                                            <a href="#" className="author d-flex align-items-center flex-wrap">
+                                                <div className="avatar"><img src={this.state.user.profile_picture_url} alt="..." className="img-fluid" /></div>
+                                                <div className="title"><span>{this.state.user.name}</span></div>
+                                            </a>
+                                            <div className="d-flex align-items-center flex-wrap">       
+                                                <div className="date"><i className="icon-clock"></i> {moment.utc(this.state.post.created_at).fromNow()}</div>
+                                                <div className="contributions"> <i className="fab fa-cuttlefish"></i> {this.state.post.total_contribution} contribuions</div>
+                                                <div className="love"><i className="far fa-grin-hearts"></i> {this.state.post.total_love}</div>
+                                                <div className="wow"><i className="far fa-grin-stars"></i> {this.state.post.total_wow}</div>
+                                                <div className="haha"><i className="far fa-laugh-squint"></i> {this.state.post.total_haha}</div>
+                                                <div className="angry"><i className="far fa-angry"></i> {this.state.post.total_angry}</div>
+                                                <div className="comments meta-last"><i className="icon-comment"></i>{23} comments</div>
+                                            </div>
+                                        </div>
+                                        <div className="post-body" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.post.description)}}></div>
+                                        <div className="post-tags">
+                                            {this.state.tags.map((tag) => 
+                                                <a href="#" key={tag.id} className="tag">#{tag.name}</a>
+                                            )}
+                                        </div>
+                                        <SingleCommentComponent />
                                     </div>
-                                    <div className="post-body" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.post.description)}}></div>
-                                    <div className="post-tags">
-                                        {this.state.tags.map((tag) => 
-                                            <a href="#" key={tag.id} className="tag">#{tag.name}</a>
-                                        )}
-                                    </div>
-                                    <SingleCommentComponent />
                                 </div>
                             </div>
-                        </div>
-                    </main>
-                </div>
+                        </main>
+                    </div>
+                </LazyLoad>
             </React.Fragment>
         );
     }

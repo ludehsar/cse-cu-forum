@@ -2341,6 +2341,982 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 
 /***/ }),
 
+/***/ "./node_modules/create-react-class/factory.js":
+/*!****************************************************!*\
+  !*** ./node_modules/create-react-class/factory.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+
+
+var _assign = __webpack_require__(/*! object-assign */ "./node_modules/object-assign/index.js");
+
+var emptyObject = __webpack_require__(/*! fbjs/lib/emptyObject */ "./node_modules/fbjs/lib/emptyObject.js");
+var _invariant = __webpack_require__(/*! fbjs/lib/invariant */ "./node_modules/fbjs/lib/invariant.js");
+
+if (true) {
+  var warning = __webpack_require__(/*! fbjs/lib/warning */ "./node_modules/fbjs/lib/warning.js");
+}
+
+var MIXINS_KEY = 'mixins';
+
+// Helper function to allow the creation of anonymous functions which do not
+// have .name set to the name of the variable being assigned to.
+function identity(fn) {
+  return fn;
+}
+
+var ReactPropTypeLocationNames;
+if (true) {
+  ReactPropTypeLocationNames = {
+    prop: 'prop',
+    context: 'context',
+    childContext: 'child context'
+  };
+} else {}
+
+function factory(ReactComponent, isValidElement, ReactNoopUpdateQueue) {
+  /**
+   * Policies that describe methods in `ReactClassInterface`.
+   */
+
+  var injectedMixins = [];
+
+  /**
+   * Composite components are higher-level components that compose other composite
+   * or host components.
+   *
+   * To create a new type of `ReactClass`, pass a specification of
+   * your new class to `React.createClass`. The only requirement of your class
+   * specification is that you implement a `render` method.
+   *
+   *   var MyComponent = React.createClass({
+   *     render: function() {
+   *       return <div>Hello World</div>;
+   *     }
+   *   });
+   *
+   * The class specification supports a specific protocol of methods that have
+   * special meaning (e.g. `render`). See `ReactClassInterface` for
+   * more the comprehensive protocol. Any other properties and methods in the
+   * class specification will be available on the prototype.
+   *
+   * @interface ReactClassInterface
+   * @internal
+   */
+  var ReactClassInterface = {
+    /**
+     * An array of Mixin objects to include when defining your component.
+     *
+     * @type {array}
+     * @optional
+     */
+    mixins: 'DEFINE_MANY',
+
+    /**
+     * An object containing properties and methods that should be defined on
+     * the component's constructor instead of its prototype (static methods).
+     *
+     * @type {object}
+     * @optional
+     */
+    statics: 'DEFINE_MANY',
+
+    /**
+     * Definition of prop types for this component.
+     *
+     * @type {object}
+     * @optional
+     */
+    propTypes: 'DEFINE_MANY',
+
+    /**
+     * Definition of context types for this component.
+     *
+     * @type {object}
+     * @optional
+     */
+    contextTypes: 'DEFINE_MANY',
+
+    /**
+     * Definition of context types this component sets for its children.
+     *
+     * @type {object}
+     * @optional
+     */
+    childContextTypes: 'DEFINE_MANY',
+
+    // ==== Definition methods ====
+
+    /**
+     * Invoked when the component is mounted. Values in the mapping will be set on
+     * `this.props` if that prop is not specified (i.e. using an `in` check).
+     *
+     * This method is invoked before `getInitialState` and therefore cannot rely
+     * on `this.state` or use `this.setState`.
+     *
+     * @return {object}
+     * @optional
+     */
+    getDefaultProps: 'DEFINE_MANY_MERGED',
+
+    /**
+     * Invoked once before the component is mounted. The return value will be used
+     * as the initial value of `this.state`.
+     *
+     *   getInitialState: function() {
+     *     return {
+     *       isOn: false,
+     *       fooBaz: new BazFoo()
+     *     }
+     *   }
+     *
+     * @return {object}
+     * @optional
+     */
+    getInitialState: 'DEFINE_MANY_MERGED',
+
+    /**
+     * @return {object}
+     * @optional
+     */
+    getChildContext: 'DEFINE_MANY_MERGED',
+
+    /**
+     * Uses props from `this.props` and state from `this.state` to render the
+     * structure of the component.
+     *
+     * No guarantees are made about when or how often this method is invoked, so
+     * it must not have side effects.
+     *
+     *   render: function() {
+     *     var name = this.props.name;
+     *     return <div>Hello, {name}!</div>;
+     *   }
+     *
+     * @return {ReactComponent}
+     * @required
+     */
+    render: 'DEFINE_ONCE',
+
+    // ==== Delegate methods ====
+
+    /**
+     * Invoked when the component is initially created and about to be mounted.
+     * This may have side effects, but any external subscriptions or data created
+     * by this method must be cleaned up in `componentWillUnmount`.
+     *
+     * @optional
+     */
+    componentWillMount: 'DEFINE_MANY',
+
+    /**
+     * Invoked when the component has been mounted and has a DOM representation.
+     * However, there is no guarantee that the DOM node is in the document.
+     *
+     * Use this as an opportunity to operate on the DOM when the component has
+     * been mounted (initialized and rendered) for the first time.
+     *
+     * @param {DOMElement} rootNode DOM element representing the component.
+     * @optional
+     */
+    componentDidMount: 'DEFINE_MANY',
+
+    /**
+     * Invoked before the component receives new props.
+     *
+     * Use this as an opportunity to react to a prop transition by updating the
+     * state using `this.setState`. Current props are accessed via `this.props`.
+     *
+     *   componentWillReceiveProps: function(nextProps, nextContext) {
+     *     this.setState({
+     *       likesIncreasing: nextProps.likeCount > this.props.likeCount
+     *     });
+     *   }
+     *
+     * NOTE: There is no equivalent `componentWillReceiveState`. An incoming prop
+     * transition may cause a state change, but the opposite is not true. If you
+     * need it, you are probably looking for `componentWillUpdate`.
+     *
+     * @param {object} nextProps
+     * @optional
+     */
+    componentWillReceiveProps: 'DEFINE_MANY',
+
+    /**
+     * Invoked while deciding if the component should be updated as a result of
+     * receiving new props, state and/or context.
+     *
+     * Use this as an opportunity to `return false` when you're certain that the
+     * transition to the new props/state/context will not require a component
+     * update.
+     *
+     *   shouldComponentUpdate: function(nextProps, nextState, nextContext) {
+     *     return !equal(nextProps, this.props) ||
+     *       !equal(nextState, this.state) ||
+     *       !equal(nextContext, this.context);
+     *   }
+     *
+     * @param {object} nextProps
+     * @param {?object} nextState
+     * @param {?object} nextContext
+     * @return {boolean} True if the component should update.
+     * @optional
+     */
+    shouldComponentUpdate: 'DEFINE_ONCE',
+
+    /**
+     * Invoked when the component is about to update due to a transition from
+     * `this.props`, `this.state` and `this.context` to `nextProps`, `nextState`
+     * and `nextContext`.
+     *
+     * Use this as an opportunity to perform preparation before an update occurs.
+     *
+     * NOTE: You **cannot** use `this.setState()` in this method.
+     *
+     * @param {object} nextProps
+     * @param {?object} nextState
+     * @param {?object} nextContext
+     * @param {ReactReconcileTransaction} transaction
+     * @optional
+     */
+    componentWillUpdate: 'DEFINE_MANY',
+
+    /**
+     * Invoked when the component's DOM representation has been updated.
+     *
+     * Use this as an opportunity to operate on the DOM when the component has
+     * been updated.
+     *
+     * @param {object} prevProps
+     * @param {?object} prevState
+     * @param {?object} prevContext
+     * @param {DOMElement} rootNode DOM element representing the component.
+     * @optional
+     */
+    componentDidUpdate: 'DEFINE_MANY',
+
+    /**
+     * Invoked when the component is about to be removed from its parent and have
+     * its DOM representation destroyed.
+     *
+     * Use this as an opportunity to deallocate any external resources.
+     *
+     * NOTE: There is no `componentDidUnmount` since your component will have been
+     * destroyed by that point.
+     *
+     * @optional
+     */
+    componentWillUnmount: 'DEFINE_MANY',
+
+    /**
+     * Replacement for (deprecated) `componentWillMount`.
+     *
+     * @optional
+     */
+    UNSAFE_componentWillMount: 'DEFINE_MANY',
+
+    /**
+     * Replacement for (deprecated) `componentWillReceiveProps`.
+     *
+     * @optional
+     */
+    UNSAFE_componentWillReceiveProps: 'DEFINE_MANY',
+
+    /**
+     * Replacement for (deprecated) `componentWillUpdate`.
+     *
+     * @optional
+     */
+    UNSAFE_componentWillUpdate: 'DEFINE_MANY',
+
+    // ==== Advanced methods ====
+
+    /**
+     * Updates the component's currently mounted DOM representation.
+     *
+     * By default, this implements React's rendering and reconciliation algorithm.
+     * Sophisticated clients may wish to override this.
+     *
+     * @param {ReactReconcileTransaction} transaction
+     * @internal
+     * @overridable
+     */
+    updateComponent: 'OVERRIDE_BASE'
+  };
+
+  /**
+   * Similar to ReactClassInterface but for static methods.
+   */
+  var ReactClassStaticInterface = {
+    /**
+     * This method is invoked after a component is instantiated and when it
+     * receives new props. Return an object to update state in response to
+     * prop changes. Return null to indicate no change to state.
+     *
+     * If an object is returned, its keys will be merged into the existing state.
+     *
+     * @return {object || null}
+     * @optional
+     */
+    getDerivedStateFromProps: 'DEFINE_MANY_MERGED'
+  };
+
+  /**
+   * Mapping from class specification keys to special processing functions.
+   *
+   * Although these are declared like instance properties in the specification
+   * when defining classes using `React.createClass`, they are actually static
+   * and are accessible on the constructor instead of the prototype. Despite
+   * being static, they must be defined outside of the "statics" key under
+   * which all other static methods are defined.
+   */
+  var RESERVED_SPEC_KEYS = {
+    displayName: function(Constructor, displayName) {
+      Constructor.displayName = displayName;
+    },
+    mixins: function(Constructor, mixins) {
+      if (mixins) {
+        for (var i = 0; i < mixins.length; i++) {
+          mixSpecIntoComponent(Constructor, mixins[i]);
+        }
+      }
+    },
+    childContextTypes: function(Constructor, childContextTypes) {
+      if (true) {
+        validateTypeDef(Constructor, childContextTypes, 'childContext');
+      }
+      Constructor.childContextTypes = _assign(
+        {},
+        Constructor.childContextTypes,
+        childContextTypes
+      );
+    },
+    contextTypes: function(Constructor, contextTypes) {
+      if (true) {
+        validateTypeDef(Constructor, contextTypes, 'context');
+      }
+      Constructor.contextTypes = _assign(
+        {},
+        Constructor.contextTypes,
+        contextTypes
+      );
+    },
+    /**
+     * Special case getDefaultProps which should move into statics but requires
+     * automatic merging.
+     */
+    getDefaultProps: function(Constructor, getDefaultProps) {
+      if (Constructor.getDefaultProps) {
+        Constructor.getDefaultProps = createMergedResultFunction(
+          Constructor.getDefaultProps,
+          getDefaultProps
+        );
+      } else {
+        Constructor.getDefaultProps = getDefaultProps;
+      }
+    },
+    propTypes: function(Constructor, propTypes) {
+      if (true) {
+        validateTypeDef(Constructor, propTypes, 'prop');
+      }
+      Constructor.propTypes = _assign({}, Constructor.propTypes, propTypes);
+    },
+    statics: function(Constructor, statics) {
+      mixStaticSpecIntoComponent(Constructor, statics);
+    },
+    autobind: function() {}
+  };
+
+  function validateTypeDef(Constructor, typeDef, location) {
+    for (var propName in typeDef) {
+      if (typeDef.hasOwnProperty(propName)) {
+        // use a warning instead of an _invariant so components
+        // don't show up in prod but only in __DEV__
+        if (true) {
+          warning(
+            typeof typeDef[propName] === 'function',
+            '%s: %s type `%s` is invalid; it must be a function, usually from ' +
+              'React.PropTypes.',
+            Constructor.displayName || 'ReactClass',
+            ReactPropTypeLocationNames[location],
+            propName
+          );
+        }
+      }
+    }
+  }
+
+  function validateMethodOverride(isAlreadyDefined, name) {
+    var specPolicy = ReactClassInterface.hasOwnProperty(name)
+      ? ReactClassInterface[name]
+      : null;
+
+    // Disallow overriding of base class methods unless explicitly allowed.
+    if (ReactClassMixin.hasOwnProperty(name)) {
+      _invariant(
+        specPolicy === 'OVERRIDE_BASE',
+        'ReactClassInterface: You are attempting to override ' +
+          '`%s` from your class specification. Ensure that your method names ' +
+          'do not overlap with React methods.',
+        name
+      );
+    }
+
+    // Disallow defining methods more than once unless explicitly allowed.
+    if (isAlreadyDefined) {
+      _invariant(
+        specPolicy === 'DEFINE_MANY' || specPolicy === 'DEFINE_MANY_MERGED',
+        'ReactClassInterface: You are attempting to define ' +
+          '`%s` on your component more than once. This conflict may be due ' +
+          'to a mixin.',
+        name
+      );
+    }
+  }
+
+  /**
+   * Mixin helper which handles policy validation and reserved
+   * specification keys when building React classes.
+   */
+  function mixSpecIntoComponent(Constructor, spec) {
+    if (!spec) {
+      if (true) {
+        var typeofSpec = typeof spec;
+        var isMixinValid = typeofSpec === 'object' && spec !== null;
+
+        if (true) {
+          warning(
+            isMixinValid,
+            "%s: You're attempting to include a mixin that is either null " +
+              'or not an object. Check the mixins included by the component, ' +
+              'as well as any mixins they include themselves. ' +
+              'Expected object but got %s.',
+            Constructor.displayName || 'ReactClass',
+            spec === null ? null : typeofSpec
+          );
+        }
+      }
+
+      return;
+    }
+
+    _invariant(
+      typeof spec !== 'function',
+      "ReactClass: You're attempting to " +
+        'use a component class or function as a mixin. Instead, just use a ' +
+        'regular object.'
+    );
+    _invariant(
+      !isValidElement(spec),
+      "ReactClass: You're attempting to " +
+        'use a component as a mixin. Instead, just use a regular object.'
+    );
+
+    var proto = Constructor.prototype;
+    var autoBindPairs = proto.__reactAutoBindPairs;
+
+    // By handling mixins before any other properties, we ensure the same
+    // chaining order is applied to methods with DEFINE_MANY policy, whether
+    // mixins are listed before or after these methods in the spec.
+    if (spec.hasOwnProperty(MIXINS_KEY)) {
+      RESERVED_SPEC_KEYS.mixins(Constructor, spec.mixins);
+    }
+
+    for (var name in spec) {
+      if (!spec.hasOwnProperty(name)) {
+        continue;
+      }
+
+      if (name === MIXINS_KEY) {
+        // We have already handled mixins in a special case above.
+        continue;
+      }
+
+      var property = spec[name];
+      var isAlreadyDefined = proto.hasOwnProperty(name);
+      validateMethodOverride(isAlreadyDefined, name);
+
+      if (RESERVED_SPEC_KEYS.hasOwnProperty(name)) {
+        RESERVED_SPEC_KEYS[name](Constructor, property);
+      } else {
+        // Setup methods on prototype:
+        // The following member methods should not be automatically bound:
+        // 1. Expected ReactClass methods (in the "interface").
+        // 2. Overridden methods (that were mixed in).
+        var isReactClassMethod = ReactClassInterface.hasOwnProperty(name);
+        var isFunction = typeof property === 'function';
+        var shouldAutoBind =
+          isFunction &&
+          !isReactClassMethod &&
+          !isAlreadyDefined &&
+          spec.autobind !== false;
+
+        if (shouldAutoBind) {
+          autoBindPairs.push(name, property);
+          proto[name] = property;
+        } else {
+          if (isAlreadyDefined) {
+            var specPolicy = ReactClassInterface[name];
+
+            // These cases should already be caught by validateMethodOverride.
+            _invariant(
+              isReactClassMethod &&
+                (specPolicy === 'DEFINE_MANY_MERGED' ||
+                  specPolicy === 'DEFINE_MANY'),
+              'ReactClass: Unexpected spec policy %s for key %s ' +
+                'when mixing in component specs.',
+              specPolicy,
+              name
+            );
+
+            // For methods which are defined more than once, call the existing
+            // methods before calling the new property, merging if appropriate.
+            if (specPolicy === 'DEFINE_MANY_MERGED') {
+              proto[name] = createMergedResultFunction(proto[name], property);
+            } else if (specPolicy === 'DEFINE_MANY') {
+              proto[name] = createChainedFunction(proto[name], property);
+            }
+          } else {
+            proto[name] = property;
+            if (true) {
+              // Add verbose displayName to the function, which helps when looking
+              // at profiling tools.
+              if (typeof property === 'function' && spec.displayName) {
+                proto[name].displayName = spec.displayName + '_' + name;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function mixStaticSpecIntoComponent(Constructor, statics) {
+    if (!statics) {
+      return;
+    }
+
+    for (var name in statics) {
+      var property = statics[name];
+      if (!statics.hasOwnProperty(name)) {
+        continue;
+      }
+
+      var isReserved = name in RESERVED_SPEC_KEYS;
+      _invariant(
+        !isReserved,
+        'ReactClass: You are attempting to define a reserved ' +
+          'property, `%s`, that shouldn\'t be on the "statics" key. Define it ' +
+          'as an instance property instead; it will still be accessible on the ' +
+          'constructor.',
+        name
+      );
+
+      var isAlreadyDefined = name in Constructor;
+      if (isAlreadyDefined) {
+        var specPolicy = ReactClassStaticInterface.hasOwnProperty(name)
+          ? ReactClassStaticInterface[name]
+          : null;
+
+        _invariant(
+          specPolicy === 'DEFINE_MANY_MERGED',
+          'ReactClass: You are attempting to define ' +
+            '`%s` on your component more than once. This conflict may be ' +
+            'due to a mixin.',
+          name
+        );
+
+        Constructor[name] = createMergedResultFunction(Constructor[name], property);
+
+        return;
+      }
+
+      Constructor[name] = property;
+    }
+  }
+
+  /**
+   * Merge two objects, but throw if both contain the same key.
+   *
+   * @param {object} one The first object, which is mutated.
+   * @param {object} two The second object
+   * @return {object} one after it has been mutated to contain everything in two.
+   */
+  function mergeIntoWithNoDuplicateKeys(one, two) {
+    _invariant(
+      one && two && typeof one === 'object' && typeof two === 'object',
+      'mergeIntoWithNoDuplicateKeys(): Cannot merge non-objects.'
+    );
+
+    for (var key in two) {
+      if (two.hasOwnProperty(key)) {
+        _invariant(
+          one[key] === undefined,
+          'mergeIntoWithNoDuplicateKeys(): ' +
+            'Tried to merge two objects with the same key: `%s`. This conflict ' +
+            'may be due to a mixin; in particular, this may be caused by two ' +
+            'getInitialState() or getDefaultProps() methods returning objects ' +
+            'with clashing keys.',
+          key
+        );
+        one[key] = two[key];
+      }
+    }
+    return one;
+  }
+
+  /**
+   * Creates a function that invokes two functions and merges their return values.
+   *
+   * @param {function} one Function to invoke first.
+   * @param {function} two Function to invoke second.
+   * @return {function} Function that invokes the two argument functions.
+   * @private
+   */
+  function createMergedResultFunction(one, two) {
+    return function mergedResult() {
+      var a = one.apply(this, arguments);
+      var b = two.apply(this, arguments);
+      if (a == null) {
+        return b;
+      } else if (b == null) {
+        return a;
+      }
+      var c = {};
+      mergeIntoWithNoDuplicateKeys(c, a);
+      mergeIntoWithNoDuplicateKeys(c, b);
+      return c;
+    };
+  }
+
+  /**
+   * Creates a function that invokes two functions and ignores their return vales.
+   *
+   * @param {function} one Function to invoke first.
+   * @param {function} two Function to invoke second.
+   * @return {function} Function that invokes the two argument functions.
+   * @private
+   */
+  function createChainedFunction(one, two) {
+    return function chainedFunction() {
+      one.apply(this, arguments);
+      two.apply(this, arguments);
+    };
+  }
+
+  /**
+   * Binds a method to the component.
+   *
+   * @param {object} component Component whose method is going to be bound.
+   * @param {function} method Method to be bound.
+   * @return {function} The bound method.
+   */
+  function bindAutoBindMethod(component, method) {
+    var boundMethod = method.bind(component);
+    if (true) {
+      boundMethod.__reactBoundContext = component;
+      boundMethod.__reactBoundMethod = method;
+      boundMethod.__reactBoundArguments = null;
+      var componentName = component.constructor.displayName;
+      var _bind = boundMethod.bind;
+      boundMethod.bind = function(newThis) {
+        for (
+          var _len = arguments.length,
+            args = Array(_len > 1 ? _len - 1 : 0),
+            _key = 1;
+          _key < _len;
+          _key++
+        ) {
+          args[_key - 1] = arguments[_key];
+        }
+
+        // User is trying to bind() an autobound method; we effectively will
+        // ignore the value of "this" that the user is trying to use, so
+        // let's warn.
+        if (newThis !== component && newThis !== null) {
+          if (true) {
+            warning(
+              false,
+              'bind(): React component methods may only be bound to the ' +
+                'component instance. See %s',
+              componentName
+            );
+          }
+        } else if (!args.length) {
+          if (true) {
+            warning(
+              false,
+              'bind(): You are binding a component method to the component. ' +
+                'React does this for you automatically in a high-performance ' +
+                'way, so you can safely remove this call. See %s',
+              componentName
+            );
+          }
+          return boundMethod;
+        }
+        var reboundMethod = _bind.apply(boundMethod, arguments);
+        reboundMethod.__reactBoundContext = component;
+        reboundMethod.__reactBoundMethod = method;
+        reboundMethod.__reactBoundArguments = args;
+        return reboundMethod;
+      };
+    }
+    return boundMethod;
+  }
+
+  /**
+   * Binds all auto-bound methods in a component.
+   *
+   * @param {object} component Component whose method is going to be bound.
+   */
+  function bindAutoBindMethods(component) {
+    var pairs = component.__reactAutoBindPairs;
+    for (var i = 0; i < pairs.length; i += 2) {
+      var autoBindKey = pairs[i];
+      var method = pairs[i + 1];
+      component[autoBindKey] = bindAutoBindMethod(component, method);
+    }
+  }
+
+  var IsMountedPreMixin = {
+    componentDidMount: function() {
+      this.__isMounted = true;
+    }
+  };
+
+  var IsMountedPostMixin = {
+    componentWillUnmount: function() {
+      this.__isMounted = false;
+    }
+  };
+
+  /**
+   * Add more to the ReactClass base class. These are all legacy features and
+   * therefore not already part of the modern ReactComponent.
+   */
+  var ReactClassMixin = {
+    /**
+     * TODO: This will be deprecated because state should always keep a consistent
+     * type signature and the only use case for this, is to avoid that.
+     */
+    replaceState: function(newState, callback) {
+      this.updater.enqueueReplaceState(this, newState, callback);
+    },
+
+    /**
+     * Checks whether or not this composite component is mounted.
+     * @return {boolean} True if mounted, false otherwise.
+     * @protected
+     * @final
+     */
+    isMounted: function() {
+      if (true) {
+        warning(
+          this.__didWarnIsMounted,
+          '%s: isMounted is deprecated. Instead, make sure to clean up ' +
+            'subscriptions and pending requests in componentWillUnmount to ' +
+            'prevent memory leaks.',
+          (this.constructor && this.constructor.displayName) ||
+            this.name ||
+            'Component'
+        );
+        this.__didWarnIsMounted = true;
+      }
+      return !!this.__isMounted;
+    }
+  };
+
+  var ReactClassComponent = function() {};
+  _assign(
+    ReactClassComponent.prototype,
+    ReactComponent.prototype,
+    ReactClassMixin
+  );
+
+  /**
+   * Creates a composite component class given a class specification.
+   * See https://facebook.github.io/react/docs/top-level-api.html#react.createclass
+   *
+   * @param {object} spec Class specification (which must define `render`).
+   * @return {function} Component constructor function.
+   * @public
+   */
+  function createClass(spec) {
+    // To keep our warnings more understandable, we'll use a little hack here to
+    // ensure that Constructor.name !== 'Constructor'. This makes sure we don't
+    // unnecessarily identify a class without displayName as 'Constructor'.
+    var Constructor = identity(function(props, context, updater) {
+      // This constructor gets overridden by mocks. The argument is used
+      // by mocks to assert on what gets mounted.
+
+      if (true) {
+        warning(
+          this instanceof Constructor,
+          'Something is calling a React component directly. Use a factory or ' +
+            'JSX instead. See: https://fb.me/react-legacyfactory'
+        );
+      }
+
+      // Wire up auto-binding
+      if (this.__reactAutoBindPairs.length) {
+        bindAutoBindMethods(this);
+      }
+
+      this.props = props;
+      this.context = context;
+      this.refs = emptyObject;
+      this.updater = updater || ReactNoopUpdateQueue;
+
+      this.state = null;
+
+      // ReactClasses doesn't have constructors. Instead, they use the
+      // getInitialState and componentWillMount methods for initialization.
+
+      var initialState = this.getInitialState ? this.getInitialState() : null;
+      if (true) {
+        // We allow auto-mocks to proceed as if they're returning null.
+        if (
+          initialState === undefined &&
+          this.getInitialState._isMockFunction
+        ) {
+          // This is probably bad practice. Consider warning here and
+          // deprecating this convenience.
+          initialState = null;
+        }
+      }
+      _invariant(
+        typeof initialState === 'object' && !Array.isArray(initialState),
+        '%s.getInitialState(): must return an object or null',
+        Constructor.displayName || 'ReactCompositeComponent'
+      );
+
+      this.state = initialState;
+    });
+    Constructor.prototype = new ReactClassComponent();
+    Constructor.prototype.constructor = Constructor;
+    Constructor.prototype.__reactAutoBindPairs = [];
+
+    injectedMixins.forEach(mixSpecIntoComponent.bind(null, Constructor));
+
+    mixSpecIntoComponent(Constructor, IsMountedPreMixin);
+    mixSpecIntoComponent(Constructor, spec);
+    mixSpecIntoComponent(Constructor, IsMountedPostMixin);
+
+    // Initialize the defaultProps property after all mixins have been merged.
+    if (Constructor.getDefaultProps) {
+      Constructor.defaultProps = Constructor.getDefaultProps();
+    }
+
+    if (true) {
+      // This is a tag to indicate that the use of these method names is ok,
+      // since it's used with createClass. If it's not, then it's likely a
+      // mistake so we'll warn you to use the static property, property
+      // initializer or constructor respectively.
+      if (Constructor.getDefaultProps) {
+        Constructor.getDefaultProps.isReactClassApproved = {};
+      }
+      if (Constructor.prototype.getInitialState) {
+        Constructor.prototype.getInitialState.isReactClassApproved = {};
+      }
+    }
+
+    _invariant(
+      Constructor.prototype.render,
+      'createClass(...): Class specification must implement a `render` method.'
+    );
+
+    if (true) {
+      warning(
+        !Constructor.prototype.componentShouldUpdate,
+        '%s has a method called ' +
+          'componentShouldUpdate(). Did you mean shouldComponentUpdate()? ' +
+          'The name is phrased as a question because the function is ' +
+          'expected to return a value.',
+        spec.displayName || 'A component'
+      );
+      warning(
+        !Constructor.prototype.componentWillRecieveProps,
+        '%s has a method called ' +
+          'componentWillRecieveProps(). Did you mean componentWillReceiveProps()?',
+        spec.displayName || 'A component'
+      );
+      warning(
+        !Constructor.prototype.UNSAFE_componentWillRecieveProps,
+        '%s has a method called UNSAFE_componentWillRecieveProps(). ' +
+          'Did you mean UNSAFE_componentWillReceiveProps()?',
+        spec.displayName || 'A component'
+      );
+    }
+
+    // Reduce time spent doing lookups by setting these on the prototype.
+    for (var methodName in ReactClassInterface) {
+      if (!Constructor.prototype[methodName]) {
+        Constructor.prototype[methodName] = null;
+      }
+    }
+
+    return Constructor;
+  }
+
+  return createClass;
+}
+
+module.exports = factory;
+
+
+/***/ }),
+
+/***/ "./node_modules/create-react-class/index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/create-react-class/index.js ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var factory = __webpack_require__(/*! ./factory */ "./node_modules/create-react-class/factory.js");
+
+if (typeof React === 'undefined') {
+  throw Error(
+    'create-react-class could not find the React object. If you are using script tags, ' +
+      'make sure that React is being loaded before create-react-class.'
+  );
+}
+
+// Hack to grab NoopUpdateQueue from isomorphic React
+var ReactNoopUpdateQueue = new React.Component().updater;
+
+module.exports = factory(
+  React.Component,
+  React.isValidElement,
+  ReactNoopUpdateQueue
+);
+
+
+/***/ }),
+
 /***/ "./node_modules/css-loader/index.js!./node_modules/postcss-loader/src/index.js?!./node_modules/sass-loader/dist/cjs.js?!./node_modules/sweetalert2/src/sweetalert2.scss":
 /*!******************************************************************************************************************************************************************************!*\
   !*** ./node_modules/css-loader!./node_modules/postcss-loader/src??ref--7-2!./node_modules/sass-loader/dist/cjs.js??ref--7-3!./node_modules/sweetalert2/src/sweetalert2.scss ***!
@@ -2360,19 +3336,19 @@ exports.push([module.i, ".swal2-popup.swal2-toast {\n  flex-direction: row;\n  a
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css":
-/*!****************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/css-loader??ref--6-1!./node_modules/postcss-loader/src??ref--6-2!./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css ***!
-  \****************************************************************************************************************************************************************************/
+/***/ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/react-datetime/css/react-datetime.css":
+/*!********************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--6-1!./node_modules/postcss-loader/src??ref--6-2!./node_modules/react-datetime/css/react-datetime.css ***!
+  \********************************************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(/*! ../../../css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+exports = module.exports = __webpack_require__(/*! ../../css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
 // imports
 
 
 // module
-exports.push([module.i, "/*@preserve\r\n * Tempus Dominus Bootstrap4 v5.1.2 (https://tempusdominus.github.io/bootstrap-4/)\r\n * Copyright 2016-2018 Jonathan Peterson\r\n * Licensed under MIT (https://github.com/tempusdominus/bootstrap-3/blob/master/LICENSE)\r\n */\r\n\r\n.sr-only, .bootstrap-datetimepicker-widget .btn[data-action=\"incrementHours\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"incrementMinutes\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"decrementHours\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"decrementMinutes\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"showHours\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"showMinutes\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"togglePeriod\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"clear\"]::after, .bootstrap-datetimepicker-widget .btn[data-action=\"today\"]::after, .bootstrap-datetimepicker-widget .picker-switch::after, .bootstrap-datetimepicker-widget table th.prev::after, .bootstrap-datetimepicker-widget table th.next::after {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  margin: -1px;\n  padding: 0;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0; }\n\n.bootstrap-datetimepicker-widget {\n  list-style: none; }\n  .bootstrap-datetimepicker-widget.dropdown-menu {\n    display: block;\n    margin: 2px 0;\n    padding: 4px;\n    width: 14rem; }\n    @media (min-width: 576px) {\n      .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {\n        width: 38em; } }\n    @media (min-width: 768px) {\n      .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {\n        width: 38em; } }\n    @media (min-width: 992px) {\n      .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {\n        width: 38em; } }\n    .bootstrap-datetimepicker-widget.dropdown-menu:before, .bootstrap-datetimepicker-widget.dropdown-menu:after {\n      content: '';\n      display: inline-block;\n      position: absolute; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.bottom:before {\n      border-left: 7px solid transparent;\n      border-right: 7px solid transparent;\n      border-bottom: 7px solid #ccc;\n      border-bottom-color: rgba(0, 0, 0, 0.2);\n      top: -7px;\n      left: 7px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.bottom:after {\n      border-left: 6px solid transparent;\n      border-right: 6px solid transparent;\n      border-bottom: 6px solid white;\n      top: -6px;\n      left: 8px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.top:before {\n      border-left: 7px solid transparent;\n      border-right: 7px solid transparent;\n      border-top: 7px solid #ccc;\n      border-top-color: rgba(0, 0, 0, 0.2);\n      bottom: -7px;\n      left: 6px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.top:after {\n      border-left: 6px solid transparent;\n      border-right: 6px solid transparent;\n      border-top: 6px solid white;\n      bottom: -6px;\n      left: 7px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.float-right:before {\n      left: auto;\n      right: 6px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.float-right:after {\n      left: auto;\n      right: 7px; }\n    .bootstrap-datetimepicker-widget.dropdown-menu.wider {\n      width: 16rem; }\n  .bootstrap-datetimepicker-widget .list-unstyled {\n    margin: 0; }\n  .bootstrap-datetimepicker-widget a[data-action] {\n    padding: 6px 0; }\n  .bootstrap-datetimepicker-widget a[data-action]:active {\n    box-shadow: none; }\n  .bootstrap-datetimepicker-widget .timepicker-hour, .bootstrap-datetimepicker-widget .timepicker-minute, .bootstrap-datetimepicker-widget .timepicker-second {\n    width: 54px;\n    font-weight: bold;\n    font-size: 1.2em;\n    margin: 0; }\n  .bootstrap-datetimepicker-widget button[data-action] {\n    padding: 6px; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"incrementHours\"]::after {\n    content: \"Increment Hours\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"incrementMinutes\"]::after {\n    content: \"Increment Minutes\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"decrementHours\"]::after {\n    content: \"Decrement Hours\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"decrementMinutes\"]::after {\n    content: \"Decrement Minutes\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"showHours\"]::after {\n    content: \"Show Hours\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"showMinutes\"]::after {\n    content: \"Show Minutes\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"togglePeriod\"]::after {\n    content: \"Toggle AM/PM\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"clear\"]::after {\n    content: \"Clear the picker\"; }\n  .bootstrap-datetimepicker-widget .btn[data-action=\"today\"]::after {\n    content: \"Set the date to today\"; }\n  .bootstrap-datetimepicker-widget .picker-switch {\n    text-align: center; }\n    .bootstrap-datetimepicker-widget .picker-switch::after {\n      content: \"Toggle Date and Time Screens\"; }\n    .bootstrap-datetimepicker-widget .picker-switch td {\n      padding: 0;\n      margin: 0;\n      height: auto;\n      width: auto;\n      line-height: inherit; }\n      .bootstrap-datetimepicker-widget .picker-switch td span {\n        line-height: 2.5;\n        height: 2.5em;\n        width: 100%; }\n  .bootstrap-datetimepicker-widget table {\n    width: 100%;\n    margin: 0; }\n    .bootstrap-datetimepicker-widget table td,\n    .bootstrap-datetimepicker-widget table th {\n      text-align: center;\n      border-radius: 0.25rem; }\n    .bootstrap-datetimepicker-widget table th {\n      height: 20px;\n      line-height: 20px;\n      width: 20px; }\n      .bootstrap-datetimepicker-widget table th.picker-switch {\n        width: 145px; }\n      .bootstrap-datetimepicker-widget table th.disabled, .bootstrap-datetimepicker-widget table th.disabled:hover {\n        background: none;\n        color: #6c757d;\n        cursor: not-allowed; }\n      .bootstrap-datetimepicker-widget table th.prev::after {\n        content: \"Previous Month\"; }\n      .bootstrap-datetimepicker-widget table th.next::after {\n        content: \"Next Month\"; }\n    .bootstrap-datetimepicker-widget table thead tr:first-child th {\n      cursor: pointer; }\n      .bootstrap-datetimepicker-widget table thead tr:first-child th:hover {\n        background: #e9ecef; }\n    .bootstrap-datetimepicker-widget table td {\n      height: 54px;\n      line-height: 54px;\n      width: 54px; }\n      .bootstrap-datetimepicker-widget table td.cw {\n        font-size: .8em;\n        height: 20px;\n        line-height: 20px;\n        color: #6c757d; }\n      .bootstrap-datetimepicker-widget table td.day {\n        height: 20px;\n        line-height: 20px;\n        width: 20px; }\n      .bootstrap-datetimepicker-widget table td.day:hover, .bootstrap-datetimepicker-widget table td.hour:hover, .bootstrap-datetimepicker-widget table td.minute:hover, .bootstrap-datetimepicker-widget table td.second:hover {\n        background: #e9ecef;\n        cursor: pointer; }\n      .bootstrap-datetimepicker-widget table td.old, .bootstrap-datetimepicker-widget table td.new {\n        color: #6c757d; }\n      .bootstrap-datetimepicker-widget table td.today {\n        position: relative; }\n        .bootstrap-datetimepicker-widget table td.today:before {\n          content: '';\n          display: inline-block;\n          border: solid transparent;\n          border-width: 0 0 7px 7px;\n          border-bottom-color: #007bff;\n          border-top-color: rgba(0, 0, 0, 0.2);\n          position: absolute;\n          bottom: 4px;\n          right: 4px; }\n      .bootstrap-datetimepicker-widget table td.active, .bootstrap-datetimepicker-widget table td.active:hover {\n        background-color: #007bff;\n        color: #fff;\n        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); }\n      .bootstrap-datetimepicker-widget table td.active.today:before {\n        border-bottom-color: #fff; }\n      .bootstrap-datetimepicker-widget table td.disabled, .bootstrap-datetimepicker-widget table td.disabled:hover {\n        background: none;\n        color: #6c757d;\n        cursor: not-allowed; }\n      .bootstrap-datetimepicker-widget table td span {\n        display: inline-block;\n        width: 54px;\n        height: 54px;\n        line-height: 54px;\n        margin: 2px 1.5px;\n        cursor: pointer;\n        border-radius: 0.25rem; }\n        .bootstrap-datetimepicker-widget table td span:hover {\n          background: #e9ecef; }\n        .bootstrap-datetimepicker-widget table td span.active {\n          background-color: #007bff;\n          color: #fff;\n          text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); }\n        .bootstrap-datetimepicker-widget table td span.old {\n          color: #6c757d; }\n        .bootstrap-datetimepicker-widget table td span.disabled, .bootstrap-datetimepicker-widget table td span.disabled:hover {\n          background: none;\n          color: #6c757d;\n          cursor: not-allowed; }\n  .bootstrap-datetimepicker-widget.usetwentyfour td.hour {\n    height: 27px;\n    line-height: 27px; }\n\n.input-group [data-toggle=\"datetimepicker\"] {\n  cursor: pointer; }\r\n", ""]);
+exports.push([module.i, "/*!\n * https://github.com/YouCanBookMe/react-datetime\n */\n\n.rdt {\n  position: relative;\n}\n.rdtPicker {\n  display: none;\n  position: absolute;\n  width: 250px;\n  padding: 4px;\n  margin-top: 1px;\n  z-index: 99999 !important;\n  background: #fff;\n  box-shadow: 0 1px 3px rgba(0,0,0,.1);\n  border: 1px solid #f9f9f9;\n}\n.rdtOpen .rdtPicker {\n  display: block;\n}\n.rdtStatic .rdtPicker {\n  box-shadow: none;\n  position: static;\n}\n\n.rdtPicker .rdtTimeToggle {\n  text-align: center;\n}\n\n.rdtPicker table {\n  width: 100%;\n  margin: 0;\n}\n.rdtPicker td,\n.rdtPicker th {\n  text-align: center;\n  height: 28px;\n}\n.rdtPicker td {\n  cursor: pointer;\n}\n.rdtPicker td.rdtDay:hover,\n.rdtPicker td.rdtHour:hover,\n.rdtPicker td.rdtMinute:hover,\n.rdtPicker td.rdtSecond:hover,\n.rdtPicker .rdtTimeToggle:hover {\n  background: #eeeeee;\n  cursor: pointer;\n}\n.rdtPicker td.rdtOld,\n.rdtPicker td.rdtNew {\n  color: #999999;\n}\n.rdtPicker td.rdtToday {\n  position: relative;\n}\n.rdtPicker td.rdtToday:before {\n  content: '';\n  display: inline-block;\n  border-left: 7px solid transparent;\n  border-bottom: 7px solid #428bca;\n  border-top-color: rgba(0, 0, 0, 0.2);\n  position: absolute;\n  bottom: 4px;\n  right: 4px;\n}\n.rdtPicker td.rdtActive,\n.rdtPicker td.rdtActive:hover {\n  background-color: #428bca;\n  color: #fff;\n  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);\n}\n.rdtPicker td.rdtActive.rdtToday:before {\n  border-bottom-color: #fff;\n}\n.rdtPicker td.rdtDisabled,\n.rdtPicker td.rdtDisabled:hover {\n  background: none;\n  color: #999999;\n  cursor: not-allowed;\n}\n\n.rdtPicker td span.rdtOld {\n  color: #999999;\n}\n.rdtPicker td span.rdtDisabled,\n.rdtPicker td span.rdtDisabled:hover {\n  background: none;\n  color: #999999;\n  cursor: not-allowed;\n}\n.rdtPicker th {\n  border-bottom: 1px solid #f9f9f9;\n}\n.rdtPicker .dow {\n  width: 14.2857%;\n  border-bottom: none;\n  cursor: default;\n}\n.rdtPicker th.rdtSwitch {\n  width: 100px;\n}\n.rdtPicker th.rdtNext,\n.rdtPicker th.rdtPrev {\n  font-size: 21px;\n  vertical-align: top;\n}\n\n.rdtPrev span,\n.rdtNext span {\n  display: block;\n  -webkit-touch-callout: none; /* iOS Safari */\n  -webkit-user-select: none;   /* Chrome/Safari/Opera */\n  -khtml-user-select: none;    /* Konqueror */\n  -moz-user-select: none;      /* Firefox */\n  -ms-user-select: none;       /* Internet Explorer/Edge */\n  user-select: none;\n}\n\n.rdtPicker th.rdtDisabled,\n.rdtPicker th.rdtDisabled:hover {\n  background: none;\n  color: #999999;\n  cursor: not-allowed;\n}\n.rdtPicker thead tr:first-child th {\n  cursor: pointer;\n}\n.rdtPicker thead tr:first-child th:hover {\n  background: #eeeeee;\n}\n\n.rdtPicker tfoot {\n  border-top: 1px solid #f9f9f9;\n}\n\n.rdtPicker button {\n  border: none;\n  background: none;\n  cursor: pointer;\n}\n.rdtPicker button:hover {\n  background-color: #eee;\n}\n\n.rdtPicker thead button {\n  width: 100%;\n  height: 100%;\n}\n\ntd.rdtMonth,\ntd.rdtYear {\n  height: 50px;\n  width: 25%;\n  cursor: pointer;\n}\ntd.rdtMonth:hover,\ntd.rdtYear:hover {\n  background: #eee;\n}\n\n.rdtCounters {\n  display: inline-block;\n}\n\n.rdtCounters > div {\n  float: left;\n}\n\n.rdtCounter {\n  height: 100px;\n}\n\n.rdtCounter {\n  width: 40px;\n}\n\n.rdtCounterSeparator {\n  line-height: 100px;\n}\n\n.rdtCounter .rdtBtn {\n  height: 40%;\n  line-height: 40px;\n  cursor: pointer;\n  display: block;\n\n  -webkit-touch-callout: none; /* iOS Safari */\n  -webkit-user-select: none;   /* Chrome/Safari/Opera */\n  -khtml-user-select: none;    /* Konqueror */\n  -moz-user-select: none;      /* Firefox */\n  -ms-user-select: none;       /* Internet Explorer/Edge */\n  user-select: none;\n}\n.rdtCounter .rdtBtn:hover {\n  background: #eee;\n}\n.rdtCounter .rdtCount {\n  height: 20%;\n  font-size: 1.2em;\n}\n\n.rdtMilli {\n  vertical-align: middle;\n  padding-left: 8px;\n  width: 48px;\n}\n\n.rdtMilli input {\n  width: 100%;\n  font-size: 1.2em;\n  margin-top: 37px;\n}\n\n.rdtTime td {\n  cursor: default;\n}\n", ""]);
 
 // exports
 
@@ -3678,6 +4654,218 @@ return purify;
 })));
 //# sourceMappingURL=purify.js.map
 
+
+/***/ }),
+
+/***/ "./node_modules/fbjs/lib/emptyFunction.js":
+/*!************************************************!*\
+  !*** ./node_modules/fbjs/lib/emptyFunction.js ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
+
+function makeEmptyFunction(arg) {
+  return function () {
+    return arg;
+  };
+}
+
+/**
+ * This function accepts and discards inputs; it has no side effects. This is
+ * primarily useful idiomatically for overridable function endpoints which
+ * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+ */
+var emptyFunction = function emptyFunction() {};
+
+emptyFunction.thatReturns = makeEmptyFunction;
+emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+emptyFunction.thatReturnsThis = function () {
+  return this;
+};
+emptyFunction.thatReturnsArgument = function (arg) {
+  return arg;
+};
+
+module.exports = emptyFunction;
+
+/***/ }),
+
+/***/ "./node_modules/fbjs/lib/emptyObject.js":
+/*!**********************************************!*\
+  !*** ./node_modules/fbjs/lib/emptyObject.js ***!
+  \**********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+
+
+var emptyObject = {};
+
+if (true) {
+  Object.freeze(emptyObject);
+}
+
+module.exports = emptyObject;
+
+/***/ }),
+
+/***/ "./node_modules/fbjs/lib/invariant.js":
+/*!********************************************!*\
+  !*** ./node_modules/fbjs/lib/invariant.js ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+
+
+/**
+ * Use invariant() to assert state which your program assumes to be true.
+ *
+ * Provide sprintf-style format (only %s is supported) and arguments
+ * to provide information about what broke and what you were
+ * expecting.
+ *
+ * The invariant message will be stripped in production, but the invariant
+ * will remain to ensure logic does not differ in production.
+ */
+
+var validateFormat = function validateFormat(format) {};
+
+if (true) {
+  validateFormat = function validateFormat(format) {
+    if (format === undefined) {
+      throw new Error('invariant requires an error message argument');
+    }
+  };
+}
+
+function invariant(condition, format, a, b, c, d, e, f) {
+  validateFormat(format);
+
+  if (!condition) {
+    var error;
+    if (format === undefined) {
+      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
+    } else {
+      var args = [a, b, c, d, e, f];
+      var argIndex = 0;
+      error = new Error(format.replace(/%s/g, function () {
+        return args[argIndex++];
+      }));
+      error.name = 'Invariant Violation';
+    }
+
+    error.framesToPop = 1; // we don't care about invariant's own frame
+    throw error;
+  }
+}
+
+module.exports = invariant;
+
+/***/ }),
+
+/***/ "./node_modules/fbjs/lib/warning.js":
+/*!******************************************!*\
+  !*** ./node_modules/fbjs/lib/warning.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+
+
+var emptyFunction = __webpack_require__(/*! ./emptyFunction */ "./node_modules/fbjs/lib/emptyFunction.js");
+
+/**
+ * Similar to invariant but only logs a warning if the condition is not met.
+ * This can be used to log issues in development environments in critical
+ * paths. Removing the logging code for production environments will keep the
+ * same logic and follow the same code paths.
+ */
+
+var warning = emptyFunction;
+
+if (true) {
+  var printWarning = function printWarning(format) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    var argIndex = 0;
+    var message = 'Warning: ' + format.replace(/%s/g, function () {
+      return args[argIndex++];
+    });
+    if (typeof console !== 'undefined') {
+      console.error(message);
+    }
+    try {
+      // --- Welcome to debugging React ---
+      // This error was thrown as a convenience so that you can use this stack
+      // to find the callsite that caused this warning to fire.
+      throw new Error(message);
+    } catch (x) {}
+  };
+
+  warning = function warning(condition, format) {
+    if (format === undefined) {
+      throw new Error('`warning(condition, format, ...args)` requires a warning ' + 'message argument');
+    }
+
+    if (format.indexOf('Failed Composite propType: ') === 0) {
+      return; // Ignore CompositeComponent proptype check.
+    }
+
+    if (!condition) {
+      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+        args[_key2 - 2] = arguments[_key2];
+      }
+
+      printWarning.apply(undefined, [format].concat(args));
+    }
+  };
+}
+
+module.exports = warning;
 
 /***/ }),
 
@@ -50197,6 +51385,1293 @@ module.exports = ReactPropTypesSecret;
 
 /***/ }),
 
+/***/ "./node_modules/react-datetime/DateTime.js":
+/*!*************************************************!*\
+  !*** ./node_modules/react-datetime/DateTime.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var assign = __webpack_require__(/*! object-assign */ "./node_modules/react-datetime/node_modules/object-assign/index.js"),
+	PropTypes = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js"),
+	moment = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js"),
+	React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	CalendarContainer = __webpack_require__(/*! ./src/CalendarContainer */ "./node_modules/react-datetime/src/CalendarContainer.js"),
+	onClickOutside = __webpack_require__(/*! react-onclickoutside */ "./node_modules/react-onclickoutside/dist/react-onclickoutside.es.js").default
+	;
+
+var viewModes = Object.freeze({
+	YEARS: 'years',
+	MONTHS: 'months',
+	DAYS: 'days',
+	TIME: 'time',
+});
+
+var TYPES = PropTypes;
+var Datetime = createClass({
+	displayName: 'DateTime',
+	propTypes: {
+		// value: TYPES.object | TYPES.string,
+		// defaultValue: TYPES.object | TYPES.string,
+		// viewDate: TYPES.object | TYPES.string,
+		onFocus: TYPES.func,
+		onBlur: TYPES.func,
+		onChange: TYPES.func,
+		onViewModeChange: TYPES.func,
+		onNavigateBack: TYPES.func,
+		onNavigateForward: TYPES.func,
+		locale: TYPES.string,
+		utc: TYPES.bool,
+		displayTimeZone: TYPES.string,
+		input: TYPES.bool,
+		// dateFormat: TYPES.string | TYPES.bool,
+		// timeFormat: TYPES.string | TYPES.bool,
+		inputProps: TYPES.object,
+		timeConstraints: TYPES.object,
+		viewMode: TYPES.oneOf([viewModes.YEARS, viewModes.MONTHS, viewModes.DAYS, viewModes.TIME]),
+		isValidDate: TYPES.func,
+		open: TYPES.bool,
+		strictParsing: TYPES.bool,
+		closeOnSelect: TYPES.bool,
+		closeOnTab: TYPES.bool
+	},
+
+	getInitialState: function() {
+		this.checkTZ( this.props );
+		
+		var state = this.getStateFromProps( this.props );
+
+		if ( state.open === undefined )
+			state.open = !this.props.input;
+
+		state.currentView = this.props.dateFormat ?
+			(this.props.viewMode || state.updateOn || viewModes.DAYS) : viewModes.TIME;
+
+		return state;
+	},
+
+	parseDate: function (date, formats) {
+		var parsedDate;
+
+		if (date && typeof date === 'string')
+			parsedDate = this.localMoment(date, formats.datetime);
+		else if (date)
+			parsedDate = this.localMoment(date);
+
+		if (parsedDate && !parsedDate.isValid())
+			parsedDate = null;
+
+		return parsedDate;
+	},
+
+	getStateFromProps: function( props ) {
+		var formats = this.getFormats( props ),
+			date = props.value || props.defaultValue,
+			selectedDate, viewDate, updateOn, inputValue
+			;
+
+		selectedDate = this.parseDate(date, formats);
+
+		viewDate = this.parseDate(props.viewDate, formats);
+
+		viewDate = selectedDate ?
+			selectedDate.clone().startOf('month') :
+			viewDate ? viewDate.clone().startOf('month') : this.localMoment().startOf('month');
+
+		updateOn = this.getUpdateOn(formats);
+
+		if ( selectedDate )
+			inputValue = selectedDate.format(formats.datetime);
+		else if ( date.isValid && !date.isValid() )
+			inputValue = '';
+		else
+			inputValue = date || '';
+
+		return {
+			updateOn: updateOn,
+			inputFormat: formats.datetime,
+			viewDate: viewDate,
+			selectedDate: selectedDate,
+			inputValue: inputValue,
+			open: props.open
+		};
+	},
+
+	getUpdateOn: function( formats ) {
+		if ( formats.date.match(/[lLD]/) ) {
+			return viewModes.DAYS;
+		} else if ( formats.date.indexOf('M') !== -1 ) {
+			return viewModes.MONTHS;
+		} else if ( formats.date.indexOf('Y') !== -1 ) {
+			return viewModes.YEARS;
+		}
+
+		return viewModes.DAYS;
+	},
+
+	getFormats: function( props ) {
+		var formats = {
+				date: props.dateFormat || '',
+				time: props.timeFormat || ''
+			},
+			locale = this.localMoment( props.date, null, props ).localeData()
+			;
+
+		if ( formats.date === true ) {
+			formats.date = locale.longDateFormat('L');
+		}
+		else if ( this.getUpdateOn(formats) !== viewModes.DAYS ) {
+			formats.time = '';
+		}
+
+		if ( formats.time === true ) {
+			formats.time = locale.longDateFormat('LT');
+		}
+
+		formats.datetime = formats.date && formats.time ?
+			formats.date + ' ' + formats.time :
+			formats.date || formats.time
+		;
+
+		return formats;
+	},
+
+	componentWillReceiveProps: function( nextProps ) {
+		var formats = this.getFormats( nextProps ),
+			updatedState = {}
+		;
+
+		if ( nextProps.value !== this.props.value ||
+			formats.datetime !== this.getFormats( this.props ).datetime ) {
+			updatedState = this.getStateFromProps( nextProps );
+		}
+
+		if ( updatedState.open === undefined ) {
+			if ( typeof nextProps.open !== 'undefined' ) {
+				updatedState.open = nextProps.open;
+			} else if ( this.props.closeOnSelect && this.state.currentView !== viewModes.TIME ) {
+				updatedState.open = false;
+			} else {
+				updatedState.open = this.state.open;
+			}
+		}
+
+		if ( nextProps.viewMode !== this.props.viewMode ) {
+			updatedState.currentView = nextProps.viewMode;
+		}
+
+		if ( nextProps.locale !== this.props.locale ) {
+			if ( this.state.viewDate ) {
+				var updatedViewDate = this.state.viewDate.clone().locale( nextProps.locale );
+				updatedState.viewDate = updatedViewDate;
+			}
+			if ( this.state.selectedDate ) {
+				var updatedSelectedDate = this.state.selectedDate.clone().locale( nextProps.locale );
+				updatedState.selectedDate = updatedSelectedDate;
+				updatedState.inputValue = updatedSelectedDate.format( formats.datetime );
+			}
+		}
+
+		if ( nextProps.utc !== this.props.utc || nextProps.displayTimeZone !== this.props.displayTimeZone ) {
+			if ( nextProps.utc ) {
+				if ( this.state.viewDate )
+					updatedState.viewDate = this.state.viewDate.clone().utc();
+				if ( this.state.selectedDate ) {
+					updatedState.selectedDate = this.state.selectedDate.clone().utc();
+					updatedState.inputValue = updatedState.selectedDate.format( formats.datetime );
+				}
+			} else if ( nextProps.displayTimeZone ) {
+				if ( this.state.viewDate )
+					updatedState.viewDate = this.state.viewDate.clone().tz(nextProps.displayTimeZone);
+				if ( this.state.selectedDate ) {
+					updatedState.selectedDate = this.state.selectedDate.clone().tz(nextProps.displayTimeZone);
+					updatedState.inputValue = updatedState.selectedDate.tz(nextProps.displayTimeZone).format( formats.datetime );
+				}
+			} else {
+				if ( this.state.viewDate )
+					updatedState.viewDate = this.state.viewDate.clone().local();
+				if ( this.state.selectedDate ) {
+					updatedState.selectedDate = this.state.selectedDate.clone().local();
+					updatedState.inputValue = updatedState.selectedDate.format(formats.datetime);
+				}
+			}
+		}
+
+		if ( nextProps.viewDate !== this.props.viewDate ) {
+			updatedState.viewDate = moment(nextProps.viewDate);
+		}
+
+		this.checkTZ( nextProps );
+
+		this.setState( updatedState );
+	},
+
+	onInputChange: function( e ) {
+		var value = e.target === null ? e : e.target.value,
+			localMoment = this.localMoment( value, this.state.inputFormat ),
+			update = { inputValue: value }
+			;
+
+		if ( localMoment.isValid() && !this.props.value ) {
+			update.selectedDate = localMoment;
+			update.viewDate = localMoment.clone().startOf('month');
+		} else {
+			update.selectedDate = null;
+		}
+
+		return this.setState( update, function() {
+			return this.props.onChange( localMoment.isValid() ? localMoment : this.state.inputValue );
+		});
+	},
+
+	onInputKey: function( e ) {
+		if ( e.which === 9 && this.props.closeOnTab ) {
+			this.closeCalendar();
+		}
+	},
+
+	showView: function( view ) {
+		var me = this;
+		return function() {
+			me.state.currentView !== view && me.props.onViewModeChange( view );
+			me.setState({ currentView: view });
+		};
+	},
+
+	setDate: function( type ) {
+		var me = this,
+			nextViews = {
+				month: viewModes.DAYS,
+				year: viewModes.MONTHS,
+			}
+		;
+		return function( e ) {
+			me.setState({
+				viewDate: me.state.viewDate.clone()[ type ]( parseInt(e.target.getAttribute('data-value'), 10) ).startOf( type ),
+				currentView: nextViews[ type ]
+			});
+			me.props.onViewModeChange( nextViews[ type ] );
+		};
+	},
+
+	subtractTime: function( amount, type, toSelected ) {
+		var me = this;
+		return function() {
+			me.props.onNavigateBack( amount, type );
+			me.updateTime( 'subtract', amount, type, toSelected );
+		};
+	},
+
+	addTime: function( amount, type, toSelected ) {
+		var me = this;
+		return function() {
+			me.props.onNavigateForward( amount, type );
+			me.updateTime( 'add', amount, type, toSelected );
+		};
+	},
+
+	updateTime: function( op, amount, type, toSelected ) {
+		var update = {},
+			date = toSelected ? 'selectedDate' : 'viewDate';
+
+		update[ date ] = this.state[ date ].clone()[ op ]( amount, type );
+
+		this.setState( update );
+	},
+
+	allowedSetTime: ['hours', 'minutes', 'seconds', 'milliseconds'],
+	setTime: function( type, value ) {
+		var index = this.allowedSetTime.indexOf( type ) + 1,
+			state = this.state,
+			date = (state.selectedDate || state.viewDate).clone(),
+			nextType
+			;
+
+		// It is needed to set all the time properties
+		// to not to reset the time
+		date[ type ]( value );
+		for (; index < this.allowedSetTime.length; index++) {
+			nextType = this.allowedSetTime[index];
+			date[ nextType ]( date[nextType]() );
+		}
+
+		if ( !this.props.value ) {
+			this.setState({
+				selectedDate: date,
+				inputValue: date.format( state.inputFormat )
+			});
+		}
+		this.props.onChange( date );
+	},
+
+	updateSelectedDate: function( e, close ) {
+		var target = e.currentTarget,
+			modifier = 0,
+			viewDate = this.state.viewDate,
+			currentDate = this.state.selectedDate || viewDate,
+			date
+			;
+
+		if (target.className.indexOf('rdtDay') !== -1) {
+			if (target.className.indexOf('rdtNew') !== -1)
+				modifier = 1;
+			else if (target.className.indexOf('rdtOld') !== -1)
+				modifier = -1;
+
+			date = viewDate.clone()
+				.month( viewDate.month() + modifier )
+				.date( parseInt( target.getAttribute('data-value'), 10 ) );
+		} else if (target.className.indexOf('rdtMonth') !== -1) {
+			date = viewDate.clone()
+				.month( parseInt( target.getAttribute('data-value'), 10 ) )
+				.date( currentDate.date() );
+		} else if (target.className.indexOf('rdtYear') !== -1) {
+			date = viewDate.clone()
+				.month( currentDate.month() )
+				.date( currentDate.date() )
+				.year( parseInt( target.getAttribute('data-value'), 10 ) );
+		}
+
+		date.hours( currentDate.hours() )
+			.minutes( currentDate.minutes() )
+			.seconds( currentDate.seconds() )
+			.milliseconds( currentDate.milliseconds() );
+
+		if ( !this.props.value ) {
+			var open = !( this.props.closeOnSelect && close );
+			if ( !open ) {
+				this.props.onBlur( date );
+			}
+
+			this.setState({
+				selectedDate: date,
+				viewDate: date.clone().startOf('month'),
+				inputValue: date.format( this.state.inputFormat ),
+				open: open
+			});
+		} else {
+			if ( this.props.closeOnSelect && close ) {
+				this.closeCalendar();
+			}
+		}
+
+		this.props.onChange( date );
+	},
+
+	openCalendar: function( e ) {
+		if ( !this.state.open ) {
+			this.setState({ open: true }, function() {
+				this.props.onFocus( e );
+			});
+		}
+	},
+
+	closeCalendar: function() {
+		this.setState({ open: false }, function () {
+			this.props.onBlur( this.state.selectedDate || this.state.inputValue );
+		});
+	},
+
+	handleClickOutside: function() {
+		if ( this.props.input && this.state.open && this.props.open === undefined && !this.props.disableCloseOnClickOutside ) {
+			this.setState({ open: false }, function() {
+				this.props.onBlur( this.state.selectedDate || this.state.inputValue );
+			});
+		}
+	},
+
+	localMoment: function( date, format, props ) {
+		props = props || this.props;
+		var m = null;
+
+		if (props.utc) {
+			m = moment.utc(date, format, props.strictParsing);
+		} else if (props.displayTimeZone) {
+			m = moment.tz(date, format, props.displayTimeZone);
+		} else {
+			m = moment(date, format, props.strictParsing);
+		}
+
+		if ( props.locale )
+			m.locale( props.locale );
+		return m;
+	},
+
+	checkTZ: function( props ) {
+		var con = console;
+
+		if ( props.displayTimeZone && !this.tzWarning && !moment.tz ) {
+			this.tzWarning = true;
+			con && con.error('react-datetime: displayTimeZone prop with value "' + props.displayTimeZone +  '" is used but moment.js timezone is not loaded.');
+		}
+	},
+
+	componentProps: {
+		fromProps: ['value', 'isValidDate', 'renderDay', 'renderMonth', 'renderYear', 'timeConstraints'],
+		fromState: ['viewDate', 'selectedDate', 'updateOn'],
+		fromThis: ['setDate', 'setTime', 'showView', 'addTime', 'subtractTime', 'updateSelectedDate', 'localMoment', 'handleClickOutside']
+	},
+
+	getComponentProps: function() {
+		var me = this,
+			formats = this.getFormats( this.props ),
+			props = {dateFormat: formats.date, timeFormat: formats.time}
+			;
+
+		this.componentProps.fromProps.forEach( function( name ) {
+			props[ name ] = me.props[ name ];
+		});
+		this.componentProps.fromState.forEach( function( name ) {
+			props[ name ] = me.state[ name ];
+		});
+		this.componentProps.fromThis.forEach( function( name ) {
+			props[ name ] = me[ name ];
+		});
+
+		return props;
+	},
+
+	overrideEvent: function( handler, action ) {
+		if ( !this.overridenEvents ) {
+			this.overridenEvents = {};
+		}
+
+		if ( !this.overridenEvents[handler] ) {
+			var me = this;
+			this.overridenEvents[handler] = function( e ) {
+				var result;
+				if ( me.props.inputProps && me.props.inputProps[handler] ) {
+					result = me.props.inputProps[handler]( e );
+				}
+				if ( result !== false ) {
+					action( e );
+				}
+			};
+		}
+
+		return this.overridenEvents[handler];
+	},
+
+	render: function() {
+		// TODO: Make a function or clean up this code,
+		// logic right now is really hard to follow
+		var className = 'rdt' + (this.props.className ?
+									( Array.isArray( this.props.className ) ?
+									' ' + this.props.className.join( ' ' ) : ' ' + this.props.className) : ''),
+			children = [];
+
+		if ( this.props.input ) {
+			var finalInputProps = assign(
+				{ type: 'text', className: 'form-control', value: this.state.inputValue },
+				this.props.inputProps,
+				{
+					onClick: this.overrideEvent( 'onClick', this.openCalendar ),
+					onFocus: this.overrideEvent( 'onFocus', this.openCalendar ),
+					onChange: this.overrideEvent( 'onChange', this.onInputChange ),
+					onKeyDown: this.overrideEvent( 'onKeyDown', this.onInputKey ),
+				}
+			);
+
+			if ( this.props.renderInput ) {
+				children = [ React.createElement('div', { key: 'i' }, this.props.renderInput( finalInputProps, this.openCalendar, this.closeCalendar )) ];
+			} else {
+				children = [ React.createElement('input', assign({ key: 'i' }, finalInputProps ))];
+			}
+		} else {
+			className += ' rdtStatic';
+		}
+
+		if ( this.props.open || (this.props.open === undefined && this.state.open ) )
+			className += ' rdtOpen';
+
+		return React.createElement( ClickableWrapper, {className: className, onClickOut: this.handleClickOutside}, children.concat(
+			React.createElement( 'div',
+				{ key: 'dt', className: 'rdtPicker' },
+				React.createElement( CalendarContainer, { view: this.state.currentView, viewProps: this.getComponentProps() })
+			)
+		));
+	}
+});
+
+var ClickableWrapper = onClickOutside( createClass({
+	render: function() {
+		return React.createElement( 'div', { className: this.props.className }, this.props.children );
+	},
+	handleClickOutside: function( e ) {
+		this.props.onClickOut( e );
+	}
+}));
+
+Datetime.defaultProps = {
+	className: '',
+	defaultValue: '',
+	inputProps: {},
+	input: true,
+	onFocus: function() {},
+	onBlur: function() {},
+	onChange: function() {},
+	onViewModeChange: function() {},
+	onNavigateBack: function() {},
+	onNavigateForward: function() {},
+	timeFormat: true,
+	timeConstraints: {},
+	dateFormat: true,
+	strictParsing: true,
+	closeOnSelect: false,
+	closeOnTab: true,
+	utc: false
+};
+
+// Make moment accessible through the Datetime class
+Datetime.moment = moment;
+
+module.exports = Datetime;
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/css/react-datetime.css":
+/*!************************************************************!*\
+  !*** ./node_modules/react-datetime/css/react-datetime.css ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../css-loader??ref--6-1!../../postcss-loader/src??ref--6-2!./react-datetime.css */ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/react-datetime/css/react-datetime.css");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/node_modules/object-assign/index.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/react-datetime/node_modules/object-assign/index.js ***!
+  \*************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function ToObject(val) {
+	if (val == null) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+function ownEnumerableKeys(obj) {
+	var keys = Object.getOwnPropertyNames(obj);
+
+	if (Object.getOwnPropertySymbols) {
+		keys = keys.concat(Object.getOwnPropertySymbols(obj));
+	}
+
+	return keys.filter(function (key) {
+		return propIsEnumerable.call(obj, key);
+	});
+}
+
+module.exports = Object.assign || function (target, source) {
+	var from;
+	var keys;
+	var to = ToObject(target);
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = arguments[s];
+		keys = ownEnumerableKeys(Object(from));
+
+		for (var i = 0; i < keys.length; i++) {
+			to[keys[i]] = from[keys[i]];
+		}
+	}
+
+	return to;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/src/CalendarContainer.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/react-datetime/src/CalendarContainer.js ***!
+  \**************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js"),
+	DaysView = __webpack_require__(/*! ./DaysView */ "./node_modules/react-datetime/src/DaysView.js"),
+	MonthsView = __webpack_require__(/*! ./MonthsView */ "./node_modules/react-datetime/src/MonthsView.js"),
+	YearsView = __webpack_require__(/*! ./YearsView */ "./node_modules/react-datetime/src/YearsView.js"),
+	TimeView = __webpack_require__(/*! ./TimeView */ "./node_modules/react-datetime/src/TimeView.js")
+	;
+
+var CalendarContainer = createClass({
+	viewComponents: {
+		days: DaysView,
+		months: MonthsView,
+		years: YearsView,
+		time: TimeView
+	},
+
+	render: function() {
+		return React.createElement( this.viewComponents[ this.props.view ], this.props.viewProps );
+	}
+});
+
+module.exports = CalendarContainer;
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/src/DaysView.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/react-datetime/src/DaysView.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js"),
+	moment = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js")
+	;
+
+var DateTimePickerDays = createClass({
+	render: function() {
+		var footer = this.renderFooter(),
+			date = this.props.viewDate,
+			locale = date.localeData(),
+			tableChildren
+			;
+
+		tableChildren = [
+			React.createElement('thead', { key: 'th' }, [
+				React.createElement('tr', { key: 'h' }, [
+					React.createElement('th', { key: 'p', className: 'rdtPrev', onClick: this.props.subtractTime( 1, 'months' )}, React.createElement('span', {}, '‹' )),
+					React.createElement('th', { key: 's', className: 'rdtSwitch', onClick: this.props.showView( 'months' ), colSpan: 5, 'data-value': this.props.viewDate.month() }, locale.months( date ) + ' ' + date.year() ),
+					React.createElement('th', { key: 'n', className: 'rdtNext', onClick: this.props.addTime( 1, 'months' )}, React.createElement('span', {}, '›' ))
+				]),
+				React.createElement('tr', { key: 'd'}, this.getDaysOfWeek( locale ).map( function( day, index ) { return React.createElement('th', { key: day + index, className: 'dow'}, day ); }) )
+			]),
+			React.createElement('tbody', { key: 'tb' }, this.renderDays())
+		];
+
+		if ( footer )
+			tableChildren.push( footer );
+
+		return React.createElement('div', { className: 'rdtDays' },
+			React.createElement('table', {}, tableChildren )
+		);
+	},
+
+	/**
+	 * Get a list of the days of the week
+	 * depending on the current locale
+	 * @return {array} A list with the shortname of the days
+	 */
+	getDaysOfWeek: function( locale ) {
+		var days = locale._weekdaysMin,
+			first = locale.firstDayOfWeek(),
+			dow = [],
+			i = 0
+			;
+
+		days.forEach( function( day ) {
+			dow[ (7 + ( i++ ) - first) % 7 ] = day;
+		});
+
+		return dow;
+	},
+
+	renderDays: function() {
+		var date = this.props.viewDate,
+			selected = this.props.selectedDate && this.props.selectedDate.clone(),
+			prevMonth = date.clone().subtract( 1, 'months' ),
+			currentYear = date.year(),
+			currentMonth = date.month(),
+			weeks = [],
+			days = [],
+			renderer = this.props.renderDay || this.renderDay,
+			isValid = this.props.isValidDate || this.alwaysValidDate,
+			classes, isDisabled, dayProps, currentDate
+			;
+
+		// Go to the last week of the previous month
+		prevMonth.date( prevMonth.daysInMonth() ).startOf( 'week' );
+		var lastDay = prevMonth.clone().add( 42, 'd' );
+
+		while ( prevMonth.isBefore( lastDay ) ) {
+			classes = 'rdtDay';
+			currentDate = prevMonth.clone();
+
+			if ( ( prevMonth.year() === currentYear && prevMonth.month() < currentMonth ) || ( prevMonth.year() < currentYear ) )
+				classes += ' rdtOld';
+			else if ( ( prevMonth.year() === currentYear && prevMonth.month() > currentMonth ) || ( prevMonth.year() > currentYear ) )
+				classes += ' rdtNew';
+
+			if ( selected && prevMonth.isSame( selected, 'day' ) )
+				classes += ' rdtActive';
+
+			if ( prevMonth.isSame( moment(), 'day' ) )
+				classes += ' rdtToday';
+
+			isDisabled = !isValid( currentDate, selected );
+			if ( isDisabled )
+				classes += ' rdtDisabled';
+
+			dayProps = {
+				key: prevMonth.format( 'M_D' ),
+				'data-value': prevMonth.date(),
+				className: classes
+			};
+
+			if ( !isDisabled )
+				dayProps.onClick = this.updateSelectedDate;
+
+			days.push( renderer( dayProps, currentDate, selected ) );
+
+			if ( days.length === 7 ) {
+				weeks.push( React.createElement('tr', { key: prevMonth.format( 'M_D' )}, days ) );
+				days = [];
+			}
+
+			prevMonth.add( 1, 'd' );
+		}
+
+		return weeks;
+	},
+
+	updateSelectedDate: function( event ) {
+		this.props.updateSelectedDate( event, true );
+	},
+
+	renderDay: function( props, currentDate ) {
+		return React.createElement('td',  props, currentDate.date() );
+	},
+
+	renderFooter: function() {
+		if ( !this.props.timeFormat )
+			return '';
+
+		var date = this.props.selectedDate || this.props.viewDate;
+
+		return React.createElement('tfoot', { key: 'tf'},
+			React.createElement('tr', {},
+				React.createElement('td', { onClick: this.props.showView( 'time' ), colSpan: 7, className: 'rdtTimeToggle' }, date.format( this.props.timeFormat ))
+			)
+		);
+	},
+
+	alwaysValidDate: function() {
+		return 1;
+	}
+});
+
+module.exports = DateTimePickerDays;
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/src/MonthsView.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/react-datetime/src/MonthsView.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js")
+;
+
+var DateTimePickerMonths = createClass({
+	render: function() {
+		return React.createElement('div', { className: 'rdtMonths' }, [
+			React.createElement('table', { key: 'a' }, React.createElement('thead', {}, React.createElement('tr', {}, [
+				React.createElement('th', { key: 'prev', className: 'rdtPrev', onClick: this.props.subtractTime( 1, 'years' )}, React.createElement('span', {}, '‹' )),
+				React.createElement('th', { key: 'year', className: 'rdtSwitch', onClick: this.props.showView( 'years' ), colSpan: 2, 'data-value': this.props.viewDate.year() }, this.props.viewDate.year() ),
+				React.createElement('th', { key: 'next', className: 'rdtNext', onClick: this.props.addTime( 1, 'years' )}, React.createElement('span', {}, '›' ))
+			]))),
+			React.createElement('table', { key: 'months' }, React.createElement('tbody', { key: 'b' }, this.renderMonths()))
+		]);
+	},
+
+	renderMonths: function() {
+		var date = this.props.selectedDate,
+			month = this.props.viewDate.month(),
+			year = this.props.viewDate.year(),
+			rows = [],
+			i = 0,
+			months = [],
+			renderer = this.props.renderMonth || this.renderMonth,
+			isValid = this.props.isValidDate || this.alwaysValidDate,
+			classes, props, currentMonth, isDisabled, noOfDaysInMonth, daysInMonth, validDay,
+			// Date is irrelevant because we're only interested in month
+			irrelevantDate = 1
+			;
+
+		while (i < 12) {
+			classes = 'rdtMonth';
+			currentMonth =
+				this.props.viewDate.clone().set({ year: year, month: i, date: irrelevantDate });
+
+			noOfDaysInMonth = currentMonth.endOf( 'month' ).format( 'D' );
+			daysInMonth = Array.from({ length: noOfDaysInMonth }, function( e, i ) {
+				return i + 1;
+			});
+
+			validDay = daysInMonth.find(function( d ) {
+				var day = currentMonth.clone().set( 'date', d );
+				return isValid( day );
+			});
+
+			isDisabled = ( validDay === undefined );
+
+			if ( isDisabled )
+				classes += ' rdtDisabled';
+
+			if ( date && i === date.month() && year === date.year() )
+				classes += ' rdtActive';
+
+			props = {
+				key: i,
+				'data-value': i,
+				className: classes
+			};
+
+			if ( !isDisabled )
+				props.onClick = ( this.props.updateOn === 'months' ?
+					this.updateSelectedMonth : this.props.setDate( 'month' ) );
+
+			months.push( renderer( props, i, year, date && date.clone() ) );
+
+			if ( months.length === 4 ) {
+				rows.push( React.createElement('tr', { key: month + '_' + rows.length }, months ) );
+				months = [];
+			}
+
+			i++;
+		}
+
+		return rows;
+	},
+
+	updateSelectedMonth: function( event ) {
+		this.props.updateSelectedDate( event );
+	},
+
+	renderMonth: function( props, month ) {
+		var localMoment = this.props.viewDate;
+		var monthStr = localMoment.localeData().monthsShort( localMoment.month( month ) );
+		var strLength = 3;
+		// Because some months are up to 5 characters long, we want to
+		// use a fixed string length for consistency
+		var monthStrFixedLength = monthStr.substring( 0, strLength );
+		return React.createElement('td', props, capitalize( monthStrFixedLength ) );
+	},
+
+	alwaysValidDate: function() {
+		return 1;
+	},
+});
+
+function capitalize( str ) {
+	return str.charAt( 0 ).toUpperCase() + str.slice( 1 );
+}
+
+module.exports = DateTimePickerMonths;
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/src/TimeView.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/react-datetime/src/TimeView.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js"),
+	assign = __webpack_require__(/*! object-assign */ "./node_modules/react-datetime/node_modules/object-assign/index.js")
+	;
+
+var DateTimePickerTime = createClass({
+	getInitialState: function() {
+		return this.calculateState( this.props );
+	},
+
+	calculateState: function( props ) {
+		var date = props.selectedDate || props.viewDate,
+			format = props.timeFormat,
+			counters = []
+			;
+
+		if ( format.toLowerCase().indexOf('h') !== -1 ) {
+			counters.push('hours');
+			if ( format.indexOf('m') !== -1 ) {
+				counters.push('minutes');
+				if ( format.indexOf('s') !== -1 ) {
+					counters.push('seconds');
+				}
+			}
+		}
+
+		var hours = date.format( 'H' );
+
+		var daypart = false;
+		if ( this.state !== null && this.props.timeFormat.toLowerCase().indexOf( ' a' ) !== -1 ) {
+			if ( this.props.timeFormat.indexOf( ' A' ) !== -1 ) {
+				daypart = ( hours >= 12 ) ? 'PM' : 'AM';
+			} else {
+				daypart = ( hours >= 12 ) ? 'pm' : 'am';
+			}
+		}
+
+		return {
+			hours: hours,
+			minutes: date.format( 'mm' ),
+			seconds: date.format( 'ss' ),
+			milliseconds: date.format( 'SSS' ),
+			daypart: daypart,
+			counters: counters
+		};
+	},
+
+	renderCounter: function( type ) {
+		if ( type !== 'daypart' ) {
+			var value = this.state[ type ];
+			if ( type === 'hours' && this.props.timeFormat.toLowerCase().indexOf( ' a' ) !== -1 ) {
+				value = ( value - 1 ) % 12 + 1;
+
+				if ( value === 0 ) {
+					value = 12;
+				}
+			}
+			return React.createElement('div', { key: type, className: 'rdtCounter' }, [
+				React.createElement('span', { key: 'up', className: 'rdtBtn', onMouseDown: this.onStartClicking( 'increase', type ), onContextMenu: this.disableContextMenu }, '▲' ),
+				React.createElement('div', { key: 'c', className: 'rdtCount' }, value ),
+				React.createElement('span', { key: 'do', className: 'rdtBtn', onMouseDown: this.onStartClicking( 'decrease', type ), onContextMenu: this.disableContextMenu }, '▼' )
+			]);
+		}
+		return '';
+	},
+
+	renderDayPart: function() {
+		return React.createElement('div', { key: 'dayPart', className: 'rdtCounter' }, [
+			React.createElement('span', { key: 'up', className: 'rdtBtn', onMouseDown: this.onStartClicking( 'toggleDayPart', 'hours'), onContextMenu: this.disableContextMenu }, '▲' ),
+			React.createElement('div', { key: this.state.daypart, className: 'rdtCount' }, this.state.daypart ),
+			React.createElement('span', { key: 'do', className: 'rdtBtn', onMouseDown: this.onStartClicking( 'toggleDayPart', 'hours'), onContextMenu: this.disableContextMenu }, '▼' )
+		]);
+	},
+
+	render: function() {
+		var me = this,
+			counters = []
+		;
+
+		this.state.counters.forEach( function( c ) {
+			if ( counters.length )
+				counters.push( React.createElement('div', { key: 'sep' + counters.length, className: 'rdtCounterSeparator' }, ':' ) );
+			counters.push( me.renderCounter( c ) );
+		});
+
+		if ( this.state.daypart !== false ) {
+			counters.push( me.renderDayPart() );
+		}
+
+		if ( this.state.counters.length === 3 && this.props.timeFormat.indexOf( 'S' ) !== -1 ) {
+			counters.push( React.createElement('div', { className: 'rdtCounterSeparator', key: 'sep5' }, ':' ) );
+			counters.push(
+				React.createElement('div', { className: 'rdtCounter rdtMilli', key: 'm' },
+					React.createElement('input', { value: this.state.milliseconds, type: 'text', onChange: this.updateMilli } )
+					)
+				);
+		}
+
+		return React.createElement('div', { className: 'rdtTime' },
+			React.createElement('table', {}, [
+				this.renderHeader(),
+				React.createElement('tbody', { key: 'b'}, React.createElement('tr', {}, React.createElement('td', {},
+					React.createElement('div', { className: 'rdtCounters' }, counters )
+				)))
+			])
+		);
+	},
+
+	componentWillMount: function() {
+		var me = this;
+		me.timeConstraints = {
+			hours: {
+				min: 0,
+				max: 23,
+				step: 1
+			},
+			minutes: {
+				min: 0,
+				max: 59,
+				step: 1
+			},
+			seconds: {
+				min: 0,
+				max: 59,
+				step: 1
+			},
+			milliseconds: {
+				min: 0,
+				max: 999,
+				step: 1
+			}
+		};
+		['hours', 'minutes', 'seconds', 'milliseconds'].forEach( function( type ) {
+			assign(me.timeConstraints[ type ], me.props.timeConstraints[ type ]);
+		});
+		this.setState( this.calculateState( this.props ) );
+	},
+
+	componentWillReceiveProps: function( nextProps ) {
+		this.setState( this.calculateState( nextProps ) );
+	},
+
+	updateMilli: function( e ) {
+		var milli = parseInt( e.target.value, 10 );
+		if ( milli === e.target.value && milli >= 0 && milli < 1000 ) {
+			this.props.setTime( 'milliseconds', milli );
+			this.setState( { milliseconds: milli } );
+		}
+	},
+
+	renderHeader: function() {
+		if ( !this.props.dateFormat )
+			return null;
+
+		var date = this.props.selectedDate || this.props.viewDate;
+		return React.createElement('thead', { key: 'h' }, React.createElement('tr', {},
+			React.createElement('th', { className: 'rdtSwitch', colSpan: 4, onClick: this.props.showView( 'days' ) }, date.format( this.props.dateFormat ) )
+		));
+	},
+
+	onStartClicking: function( action, type ) {
+		var me = this;
+
+		return function() {
+			var update = {};
+			update[ type ] = me[ action ]( type );
+			me.setState( update );
+
+			me.timer = setTimeout( function() {
+				me.increaseTimer = setInterval( function() {
+					update[ type ] = me[ action ]( type );
+					me.setState( update );
+				}, 70);
+			}, 500);
+
+			me.mouseUpListener = function() {
+				clearTimeout( me.timer );
+				clearInterval( me.increaseTimer );
+				me.props.setTime( type, me.state[ type ] );
+				document.body.removeEventListener( 'mouseup', me.mouseUpListener );
+				document.body.removeEventListener( 'touchend', me.mouseUpListener );
+			};
+
+			document.body.addEventListener( 'mouseup', me.mouseUpListener );
+			document.body.addEventListener( 'touchend', me.mouseUpListener );
+		};
+	},
+
+	disableContextMenu: function( event ) {
+		event.preventDefault();
+		return false;
+	},
+
+	padValues: {
+		hours: 1,
+		minutes: 2,
+		seconds: 2,
+		milliseconds: 3
+	},
+
+	toggleDayPart: function( type ) { // type is always 'hours'
+		var value = parseInt( this.state[ type ], 10) + 12;
+		if ( value > this.timeConstraints[ type ].max )
+			value = this.timeConstraints[ type ].min + ( value - ( this.timeConstraints[ type ].max + 1 ) );
+		return this.pad( type, value );
+	},
+
+	increase: function( type ) {
+		var value = parseInt( this.state[ type ], 10) + this.timeConstraints[ type ].step;
+		if ( value > this.timeConstraints[ type ].max )
+			value = this.timeConstraints[ type ].min + ( value - ( this.timeConstraints[ type ].max + 1 ) );
+		return this.pad( type, value );
+	},
+
+	decrease: function( type ) {
+		var value = parseInt( this.state[ type ], 10) - this.timeConstraints[ type ].step;
+		if ( value < this.timeConstraints[ type ].min )
+			value = this.timeConstraints[ type ].max + 1 - ( this.timeConstraints[ type ].min - value );
+		return this.pad( type, value );
+	},
+
+	pad: function( type, value ) {
+		var str = value + '';
+		while ( str.length < this.padValues[ type ] )
+			str = '0' + str;
+		return str;
+	},
+});
+
+module.exports = DateTimePickerTime;
+
+
+/***/ }),
+
+/***/ "./node_modules/react-datetime/src/YearsView.js":
+/*!******************************************************!*\
+  !*** ./node_modules/react-datetime/src/YearsView.js ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js"),
+	createClass = __webpack_require__(/*! create-react-class */ "./node_modules/create-react-class/index.js")
+;
+
+var DateTimePickerYears = createClass({
+	render: function() {
+		var year = parseInt( this.props.viewDate.year() / 10, 10 ) * 10;
+
+		return React.createElement('div', { className: 'rdtYears' }, [
+			React.createElement('table', { key: 'a' }, React.createElement('thead', {}, React.createElement('tr', {}, [
+				React.createElement('th', { key: 'prev', className: 'rdtPrev', onClick: this.props.subtractTime( 10, 'years' )}, React.createElement('span', {}, '‹' )),
+				React.createElement('th', { key: 'year', className: 'rdtSwitch', onClick: this.props.showView( 'years' ), colSpan: 2 }, year + '-' + ( year + 9 ) ),
+				React.createElement('th', { key: 'next', className: 'rdtNext', onClick: this.props.addTime( 10, 'years' )}, React.createElement('span', {}, '›' ))
+			]))),
+			React.createElement('table', { key: 'years' }, React.createElement('tbody',  {}, this.renderYears( year )))
+		]);
+	},
+
+	renderYears: function( year ) {
+		var years = [],
+			i = -1,
+			rows = [],
+			renderer = this.props.renderYear || this.renderYear,
+			selectedDate = this.props.selectedDate,
+			isValid = this.props.isValidDate || this.alwaysValidDate,
+			classes, props, currentYear, isDisabled, noOfDaysInYear, daysInYear, validDay,
+			// Month and date are irrelevant here because
+			// we're only interested in the year
+			irrelevantMonth = 0,
+			irrelevantDate = 1
+			;
+
+		year--;
+		while (i < 11) {
+			classes = 'rdtYear';
+			currentYear = this.props.viewDate.clone().set(
+				{ year: year, month: irrelevantMonth, date: irrelevantDate } );
+
+			// Not sure what 'rdtOld' is for, commenting out for now as it's not working properly
+			// if ( i === -1 | i === 10 )
+				// classes += ' rdtOld';
+
+			noOfDaysInYear = currentYear.endOf( 'year' ).format( 'DDD' );
+			daysInYear = Array.from({ length: noOfDaysInYear }, function( e, i ) {
+				return i + 1;
+			});
+
+			validDay = daysInYear.find(function( d ) {
+				var day = currentYear.clone().dayOfYear( d );
+				return isValid( day );
+			});
+
+			isDisabled = ( validDay === undefined );
+
+			if ( isDisabled )
+				classes += ' rdtDisabled';
+
+			if ( selectedDate && selectedDate.year() === year )
+				classes += ' rdtActive';
+
+			props = {
+				key: year,
+				'data-value': year,
+				className: classes
+			};
+
+			if ( !isDisabled )
+				props.onClick = ( this.props.updateOn === 'years' ?
+					this.updateSelectedYear : this.props.setDate('year') );
+
+			years.push( renderer( props, year, selectedDate && selectedDate.clone() ));
+
+			if ( years.length === 4 ) {
+				rows.push( React.createElement('tr', { key: i }, years ) );
+				years = [];
+			}
+
+			year++;
+			i++;
+		}
+
+		return rows;
+	},
+
+	updateSelectedYear: function( event ) {
+		this.props.updateSelectedDate( event );
+	},
+
+	renderYear: function( props, year ) {
+		return React.createElement('td',  props, year );
+	},
+
+	alwaysValidDate: function() {
+		return 1;
+	},
+});
+
+module.exports = DateTimePickerYears;
+
+
+/***/ }),
+
 /***/ "./node_modules/react-dom/cjs/react-dom.development.js":
 /*!*************************************************************!*\
   !*** ./node_modules/react-dom/cjs/react-dom.development.js ***!
@@ -78338,6 +80813,986 @@ Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function
 
 /***/ }),
 
+/***/ "./node_modules/react-lazyload/lib/index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/react-lazyload/lib/index.js ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.forceCheck = exports.lazyload = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _propTypes = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _event = __webpack_require__(/*! ./utils/event */ "./node_modules/react-lazyload/lib/utils/event.js");
+
+var _scrollParent = __webpack_require__(/*! ./utils/scrollParent */ "./node_modules/react-lazyload/lib/utils/scrollParent.js");
+
+var _scrollParent2 = _interopRequireDefault(_scrollParent);
+
+var _debounce = __webpack_require__(/*! ./utils/debounce */ "./node_modules/react-lazyload/lib/utils/debounce.js");
+
+var _debounce2 = _interopRequireDefault(_debounce);
+
+var _throttle = __webpack_require__(/*! ./utils/throttle */ "./node_modules/react-lazyload/lib/utils/throttle.js");
+
+var _throttle2 = _interopRequireDefault(_throttle);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /**
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * react-lazyload
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+
+var defaultBoundingClientRect = { top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 };
+var LISTEN_FLAG = 'data-lazyload-listened';
+var listeners = [];
+var pending = [];
+
+// try to handle passive events
+var passiveEventSupported = false;
+try {
+  var opts = Object.defineProperty({}, 'passive', {
+    get: function get() {
+      passiveEventSupported = true;
+    }
+  });
+  window.addEventListener('test', null, opts);
+} catch (e) {}
+// if they are supported, setup the optional params
+// IMPORTANT: FALSE doubles as the default CAPTURE value!
+var passiveEvent = passiveEventSupported ? { capture: false, passive: true } : false;
+
+/**
+ * Check if `component` is visible in overflow container `parent`
+ * @param  {node} component React component
+ * @param  {node} parent    component's scroll parent
+ * @return {bool}
+ */
+var checkOverflowVisible = function checkOverflowVisible(component, parent) {
+  var node = _reactDom2.default.findDOMNode(component);
+
+  var parentTop = void 0;
+  var parentLeft = void 0;
+  var parentHeight = void 0;
+  var parentWidth = void 0;
+
+  try {
+    var _parent$getBoundingCl = parent.getBoundingClientRect();
+
+    parentTop = _parent$getBoundingCl.top;
+    parentLeft = _parent$getBoundingCl.left;
+    parentHeight = _parent$getBoundingCl.height;
+    parentWidth = _parent$getBoundingCl.width;
+  } catch (e) {
+    parentTop = defaultBoundingClientRect.top;
+    parentLeft = defaultBoundingClientRect.left;
+    parentHeight = defaultBoundingClientRect.height;
+    parentWidth = defaultBoundingClientRect.width;
+  }
+
+  var windowInnerHeight = window.innerHeight || document.documentElement.clientHeight;
+  var windowInnerWidth = window.innerWidth || document.documentElement.clientWidth;
+
+  // calculate top and height of the intersection of the element's scrollParent and viewport
+  var intersectionTop = Math.max(parentTop, 0); // intersection's top relative to viewport
+  var intersectionLeft = Math.max(parentLeft, 0); // intersection's left relative to viewport
+  var intersectionHeight = Math.min(windowInnerHeight, parentTop + parentHeight) - intersectionTop; // height
+  var intersectionWidth = Math.min(windowInnerWidth, parentLeft + parentWidth) - intersectionLeft; // width
+
+  // check whether the element is visible in the intersection
+  var top = void 0;
+  var left = void 0;
+  var height = void 0;
+  var width = void 0;
+
+  try {
+    var _node$getBoundingClie = node.getBoundingClientRect();
+
+    top = _node$getBoundingClie.top;
+    left = _node$getBoundingClie.left;
+    height = _node$getBoundingClie.height;
+    width = _node$getBoundingClie.width;
+  } catch (e) {
+    top = defaultBoundingClientRect.top;
+    left = defaultBoundingClientRect.left;
+    height = defaultBoundingClientRect.height;
+    width = defaultBoundingClientRect.width;
+  }
+
+  var offsetTop = top - intersectionTop; // element's top relative to intersection
+  var offsetLeft = left - intersectionLeft; // element's left relative to intersection
+
+  var offsets = Array.isArray(component.props.offset) ? component.props.offset : [component.props.offset, component.props.offset]; // Be compatible with previous API
+
+  return offsetTop - offsets[0] <= intersectionHeight && offsetTop + height + offsets[1] >= 0 && offsetLeft - offsets[0] <= intersectionWidth && offsetLeft + width + offsets[1] >= 0;
+};
+
+/**
+ * Check if `component` is visible in document
+ * @param  {node} component React component
+ * @return {bool}
+ */
+var checkNormalVisible = function checkNormalVisible(component) {
+  var node = _reactDom2.default.findDOMNode(component);
+
+  // If this element is hidden by css rules somehow, it's definitely invisible
+  if (!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)) return false;
+
+  var top = void 0;
+  var elementHeight = void 0;
+
+  try {
+    var _node$getBoundingClie2 = node.getBoundingClientRect();
+
+    top = _node$getBoundingClie2.top;
+    elementHeight = _node$getBoundingClie2.height;
+  } catch (e) {
+    top = defaultBoundingClientRect.top;
+    elementHeight = defaultBoundingClientRect.height;
+  }
+
+  var windowInnerHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  var offsets = Array.isArray(component.props.offset) ? component.props.offset : [component.props.offset, component.props.offset]; // Be compatible with previous API
+
+  return top - offsets[0] <= windowInnerHeight && top + elementHeight + offsets[1] >= 0;
+};
+
+/**
+ * Detect if element is visible in viewport, if so, set `visible` state to true.
+ * If `once` prop is provided true, remove component as listener after checkVisible
+ *
+ * @param  {React} component   React component that respond to scroll and resize
+ */
+var checkVisible = function checkVisible(component) {
+  var node = _reactDom2.default.findDOMNode(component);
+  if (!(node instanceof HTMLElement)) {
+    return;
+  }
+
+  var parent = (0, _scrollParent2.default)(node);
+  var isOverflow = component.props.overflow && parent !== node.ownerDocument && parent !== document && parent !== document.documentElement;
+  var visible = isOverflow ? checkOverflowVisible(component, parent) : checkNormalVisible(component);
+  if (visible) {
+    // Avoid extra render if previously is visible
+    if (!component.visible) {
+      if (component.props.once) {
+        pending.push(component);
+      }
+
+      component.visible = true;
+      component.forceUpdate();
+    }
+  } else if (!(component.props.once && component.visible)) {
+    component.visible = false;
+    if (component.props.unmountIfInvisible) {
+      component.forceUpdate();
+    }
+  }
+};
+
+var purgePending = function purgePending() {
+  pending.forEach(function (component) {
+    var index = listeners.indexOf(component);
+    if (index !== -1) {
+      listeners.splice(index, 1);
+    }
+  });
+
+  pending = [];
+};
+
+var lazyLoadHandler = function lazyLoadHandler() {
+  for (var i = 0; i < listeners.length; ++i) {
+    var listener = listeners[i];
+    checkVisible(listener);
+  }
+  // Remove `once` component in listeners
+  purgePending();
+};
+
+// Depending on component's props
+var delayType = void 0;
+var finalLazyLoadHandler = null;
+
+var isString = function isString(string) {
+  return typeof string === 'string';
+};
+
+var LazyLoad = function (_Component) {
+  _inherits(LazyLoad, _Component);
+
+  function LazyLoad(props) {
+    _classCallCheck(this, LazyLoad);
+
+    var _this = _possibleConstructorReturn(this, (LazyLoad.__proto__ || Object.getPrototypeOf(LazyLoad)).call(this, props));
+
+    _this.visible = false;
+    return _this;
+  }
+
+  _createClass(LazyLoad, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      // It's unlikely to change delay type on the fly, this is mainly
+      // designed for tests
+      var scrollport = window;
+      var scrollContainer = this.props.scrollContainer;
+
+      if (scrollContainer) {
+        if (isString(scrollContainer)) {
+          scrollport = scrollport.document.querySelector(scrollContainer);
+        }
+      }
+      var needResetFinalLazyLoadHandler = this.props.debounce !== undefined && delayType === 'throttle' || delayType === 'debounce' && this.props.debounce === undefined;
+
+      if (needResetFinalLazyLoadHandler) {
+        (0, _event.off)(scrollport, 'scroll', finalLazyLoadHandler, passiveEvent);
+        (0, _event.off)(window, 'resize', finalLazyLoadHandler, passiveEvent);
+        finalLazyLoadHandler = null;
+      }
+
+      if (!finalLazyLoadHandler) {
+        if (this.props.debounce !== undefined) {
+          finalLazyLoadHandler = (0, _debounce2.default)(lazyLoadHandler, typeof this.props.debounce === 'number' ? this.props.debounce : 300);
+          delayType = 'debounce';
+        } else if (this.props.throttle !== undefined) {
+          finalLazyLoadHandler = (0, _throttle2.default)(lazyLoadHandler, typeof this.props.throttle === 'number' ? this.props.throttle : 300);
+          delayType = 'throttle';
+        } else {
+          finalLazyLoadHandler = lazyLoadHandler;
+        }
+      }
+
+      if (this.props.overflow) {
+        var parent = (0, _scrollParent2.default)(_reactDom2.default.findDOMNode(this));
+        if (parent && typeof parent.getAttribute === 'function') {
+          var listenerCount = 1 + +parent.getAttribute(LISTEN_FLAG);
+          if (listenerCount === 1) {
+            parent.addEventListener('scroll', finalLazyLoadHandler, passiveEvent);
+          }
+          parent.setAttribute(LISTEN_FLAG, listenerCount);
+        }
+      } else if (listeners.length === 0 || needResetFinalLazyLoadHandler) {
+        var _props = this.props,
+            scroll = _props.scroll,
+            resize = _props.resize;
+
+
+        if (scroll) {
+          (0, _event.on)(scrollport, 'scroll', finalLazyLoadHandler, passiveEvent);
+        }
+
+        if (resize) {
+          (0, _event.on)(window, 'resize', finalLazyLoadHandler, passiveEvent);
+        }
+      }
+
+      listeners.push(this);
+      checkVisible(this);
+    }
+  }, {
+    key: 'shouldComponentUpdate',
+    value: function shouldComponentUpdate() {
+      return this.visible;
+    }
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      if (this.props.overflow) {
+        var parent = (0, _scrollParent2.default)(_reactDom2.default.findDOMNode(this));
+        if (parent && typeof parent.getAttribute === 'function') {
+          var listenerCount = +parent.getAttribute(LISTEN_FLAG) - 1;
+          if (listenerCount === 0) {
+            parent.removeEventListener('scroll', finalLazyLoadHandler, passiveEvent);
+            parent.removeAttribute(LISTEN_FLAG);
+          } else {
+            parent.setAttribute(LISTEN_FLAG, listenerCount);
+          }
+        }
+      }
+
+      var index = listeners.indexOf(this);
+      if (index !== -1) {
+        listeners.splice(index, 1);
+      }
+
+      if (listeners.length === 0 && typeof window !== 'undefined') {
+        (0, _event.off)(window, 'resize', finalLazyLoadHandler, passiveEvent);
+        (0, _event.off)(window, 'scroll', finalLazyLoadHandler, passiveEvent);
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return this.visible ? this.props.children : this.props.placeholder ? this.props.placeholder : _react2.default.createElement('div', { style: { height: this.props.height }, className: 'lazyload-placeholder' });
+    }
+  }]);
+
+  return LazyLoad;
+}(_react.Component);
+
+LazyLoad.propTypes = {
+  once: _propTypes2.default.bool,
+  height: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.string]),
+  offset: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.arrayOf(_propTypes2.default.number)]),
+  overflow: _propTypes2.default.bool,
+  resize: _propTypes2.default.bool,
+  scroll: _propTypes2.default.bool,
+  children: _propTypes2.default.node,
+  throttle: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.bool]),
+  debounce: _propTypes2.default.oneOfType([_propTypes2.default.number, _propTypes2.default.bool]),
+  placeholder: _propTypes2.default.node,
+  scrollContainer: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.object]),
+  unmountIfInvisible: _propTypes2.default.bool
+};
+
+LazyLoad.defaultProps = {
+  once: false,
+  offset: 0,
+  overflow: false,
+  resize: false,
+  scroll: true,
+  unmountIfInvisible: false
+};
+
+var getDisplayName = function getDisplayName(WrappedComponent) {
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+};
+
+var decorator = function decorator() {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  return function lazyload(WrappedComponent) {
+    return function (_Component2) {
+      _inherits(LazyLoadDecorated, _Component2);
+
+      function LazyLoadDecorated() {
+        _classCallCheck(this, LazyLoadDecorated);
+
+        var _this2 = _possibleConstructorReturn(this, (LazyLoadDecorated.__proto__ || Object.getPrototypeOf(LazyLoadDecorated)).call(this));
+
+        _this2.displayName = 'LazyLoad' + getDisplayName(WrappedComponent);
+        return _this2;
+      }
+
+      _createClass(LazyLoadDecorated, [{
+        key: 'render',
+        value: function render() {
+          return _react2.default.createElement(
+            LazyLoad,
+            options,
+            _react2.default.createElement(WrappedComponent, this.props)
+          );
+        }
+      }]);
+
+      return LazyLoadDecorated;
+    }(_react.Component);
+  };
+};
+
+exports.lazyload = decorator;
+exports.default = LazyLoad;
+exports.forceCheck = lazyLoadHandler;
+
+/***/ }),
+
+/***/ "./node_modules/react-lazyload/lib/utils/debounce.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/react-lazyload/lib/utils/debounce.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = debounce;
+function debounce(func, wait, immediate) {
+  var timeout = void 0;
+  var args = void 0;
+  var context = void 0;
+  var timestamp = void 0;
+  var result = void 0;
+
+  var later = function later() {
+    var last = +new Date() - timestamp;
+
+    if (last < wait && last >= 0) {
+      timeout = setTimeout(later, wait - last);
+    } else {
+      timeout = null;
+      if (!immediate) {
+        result = func.apply(context, args);
+        if (!timeout) {
+          context = null;
+          args = null;
+        }
+      }
+    }
+  };
+
+  return function debounced() {
+    context = this;
+    args = arguments;
+    timestamp = +new Date();
+
+    var callNow = immediate && !timeout;
+    if (!timeout) {
+      timeout = setTimeout(later, wait);
+    }
+
+    if (callNow) {
+      result = func.apply(context, args);
+      context = null;
+      args = null;
+    }
+
+    return result;
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/react-lazyload/lib/utils/event.js":
+/*!********************************************************!*\
+  !*** ./node_modules/react-lazyload/lib/utils/event.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.on = on;
+exports.off = off;
+function on(el, eventName, callback, opts) {
+  opts = opts || false;
+  if (el.addEventListener) {
+    el.addEventListener(eventName, callback, opts);
+  } else if (el.attachEvent) {
+    el.attachEvent("on" + eventName, function (e) {
+      callback.call(el, e || window.event);
+    });
+  }
+}
+
+function off(el, eventName, callback, opts) {
+  opts = opts || false;
+  if (el.removeEventListener) {
+    el.removeEventListener(eventName, callback, opts);
+  } else if (el.detachEvent) {
+    el.detachEvent("on" + eventName, callback);
+  }
+}
+
+/***/ }),
+
+/***/ "./node_modules/react-lazyload/lib/utils/scrollParent.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/react-lazyload/lib/utils/scrollParent.js ***!
+  \***************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+/**
+ * @fileOverview Find scroll parent
+ */
+
+exports.default = function (node) {
+  if (!(node instanceof HTMLElement)) {
+    return document.documentElement;
+  }
+
+  var excludeStaticParent = node.style.position === 'absolute';
+  var overflowRegex = /(scroll|auto)/;
+  var parent = node;
+
+  while (parent) {
+    if (!parent.parentNode) {
+      return node.ownerDocument || document.documentElement;
+    }
+
+    var style = window.getComputedStyle(parent);
+    var position = style.position;
+    var overflow = style.overflow;
+    var overflowX = style['overflow-x'];
+    var overflowY = style['overflow-y'];
+
+    if (position === 'static' && excludeStaticParent) {
+      parent = parent.parentNode;
+      continue;
+    }
+
+    if (overflowRegex.test(overflow) && overflowRegex.test(overflowX) && overflowRegex.test(overflowY)) {
+      return parent;
+    }
+
+    parent = parent.parentNode;
+  }
+
+  return node.ownerDocument || node.documentElement || document.documentElement;
+};
+
+/***/ }),
+
+/***/ "./node_modules/react-lazyload/lib/utils/throttle.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/react-lazyload/lib/utils/throttle.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = throttle;
+/*eslint-disable */
+function throttle(fn, threshhold, scope) {
+  threshhold || (threshhold = 250);
+  var last, deferTimer;
+  return function () {
+    var context = scope || this;
+
+    var now = +new Date(),
+        args = arguments;
+    if (last && now < last + threshhold) {
+      // hold on to it
+      clearTimeout(deferTimer);
+      deferTimer = setTimeout(function () {
+        last = now;
+        fn.apply(context, args);
+      }, threshhold);
+    } else {
+      last = now;
+      fn.apply(context, args);
+    }
+  };
+}
+
+/***/ }),
+
+/***/ "./node_modules/react-onclickoutside/dist/react-onclickoutside.es.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/react-onclickoutside/dist/react-onclickoutside.es.js ***!
+  \***************************************************************************/
+/*! exports provided: IGNORE_CLASS_NAME, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IGNORE_CLASS_NAME", function() { return IGNORE_CLASS_NAME; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+  subClass.__proto__ = superClass;
+}
+
+function _objectWithoutProperties(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+    for (i = 0; i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      target[key] = source[key];
+    }
+  }
+
+  return target;
+}
+
+/**
+ * Check whether some DOM node is our Component's node.
+ */
+function isNodeFound(current, componentNode, ignoreClass) {
+  if (current === componentNode) {
+    return true;
+  } // SVG <use/> elements do not technically reside in the rendered DOM, so
+  // they do not have classList directly, but they offer a link to their
+  // corresponding element, which can have classList. This extra check is for
+  // that case.
+  // See: http://www.w3.org/TR/SVG11/struct.html#InterfaceSVGUseElement
+  // Discussion: https://github.com/Pomax/react-onclickoutside/pull/17
+
+
+  if (current.correspondingElement) {
+    return current.correspondingElement.classList.contains(ignoreClass);
+  }
+
+  return current.classList.contains(ignoreClass);
+}
+/**
+ * Try to find our node in a hierarchy of nodes, returning the document
+ * node as highest node if our node is not found in the path up.
+ */
+
+function findHighest(current, componentNode, ignoreClass) {
+  if (current === componentNode) {
+    return true;
+  } // If source=local then this event came from 'somewhere'
+  // inside and should be ignored. We could handle this with
+  // a layered approach, too, but that requires going back to
+  // thinking in terms of Dom node nesting, running counter
+  // to React's 'you shouldn't care about the DOM' philosophy.
+
+
+  while (current.parentNode) {
+    if (isNodeFound(current, componentNode, ignoreClass)) {
+      return true;
+    }
+
+    current = current.parentNode;
+  }
+
+  return current;
+}
+/**
+ * Check if the browser scrollbar was clicked
+ */
+
+function clickedScrollbar(evt) {
+  return document.documentElement.clientWidth <= evt.clientX || document.documentElement.clientHeight <= evt.clientY;
+}
+
+// ideally will get replaced with external dep
+// when rafrex/detect-passive-events#4 and rafrex/detect-passive-events#5 get merged in
+var testPassiveEventSupport = function testPassiveEventSupport() {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') {
+    return;
+  }
+
+  var passive = false;
+  var options = Object.defineProperty({}, 'passive', {
+    get: function get() {
+      passive = true;
+    }
+  });
+
+  var noop = function noop() {};
+
+  window.addEventListener('testPassiveEventSupport', noop, options);
+  window.removeEventListener('testPassiveEventSupport', noop, options);
+  return passive;
+};
+
+function autoInc(seed) {
+  if (seed === void 0) {
+    seed = 0;
+  }
+
+  return function () {
+    return ++seed;
+  };
+}
+
+var uid = autoInc();
+
+var passiveEventSupport;
+var handlersMap = {};
+var enabledInstances = {};
+var touchEvents = ['touchstart', 'touchmove'];
+var IGNORE_CLASS_NAME = 'ignore-react-onclickoutside';
+/**
+ * Options for addEventHandler and removeEventHandler
+ */
+
+function getEventHandlerOptions(instance, eventName) {
+  var handlerOptions = null;
+  var isTouchEvent = touchEvents.indexOf(eventName) !== -1;
+
+  if (isTouchEvent && passiveEventSupport) {
+    handlerOptions = {
+      passive: !instance.props.preventDefault
+    };
+  }
+
+  return handlerOptions;
+}
+/**
+ * This function generates the HOC function that you'll use
+ * in order to impart onOutsideClick listening to an
+ * arbitrary component. It gets called at the end of the
+ * bootstrapping code to yield an instance of the
+ * onClickOutsideHOC function defined inside setupHOC().
+ */
+
+
+function onClickOutsideHOC(WrappedComponent, config) {
+  var _class, _temp;
+
+  var componentName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
+  return _temp = _class =
+  /*#__PURE__*/
+  function (_Component) {
+    _inheritsLoose(onClickOutside, _Component);
+
+    function onClickOutside(props) {
+      var _this;
+
+      _this = _Component.call(this, props) || this;
+
+      _this.__outsideClickHandler = function (event) {
+        if (typeof _this.__clickOutsideHandlerProp === 'function') {
+          _this.__clickOutsideHandlerProp(event);
+
+          return;
+        }
+
+        var instance = _this.getInstance();
+
+        if (typeof instance.props.handleClickOutside === 'function') {
+          instance.props.handleClickOutside(event);
+          return;
+        }
+
+        if (typeof instance.handleClickOutside === 'function') {
+          instance.handleClickOutside(event);
+          return;
+        }
+
+        throw new Error("WrappedComponent: " + componentName + " lacks a handleClickOutside(event) function for processing outside click events.");
+      };
+
+      _this.__getComponentNode = function () {
+        var instance = _this.getInstance();
+
+        if (config && typeof config.setClickOutsideRef === 'function') {
+          return config.setClickOutsideRef()(instance);
+        }
+
+        if (typeof instance.setClickOutsideRef === 'function') {
+          return instance.setClickOutsideRef();
+        }
+
+        return Object(react_dom__WEBPACK_IMPORTED_MODULE_1__["findDOMNode"])(instance);
+      };
+
+      _this.enableOnClickOutside = function () {
+        if (typeof document === 'undefined' || enabledInstances[_this._uid]) {
+          return;
+        }
+
+        if (typeof passiveEventSupport === 'undefined') {
+          passiveEventSupport = testPassiveEventSupport();
+        }
+
+        enabledInstances[_this._uid] = true;
+        var events = _this.props.eventTypes;
+
+        if (!events.forEach) {
+          events = [events];
+        }
+
+        handlersMap[_this._uid] = function (event) {
+          if (_this.componentNode === null) return;
+
+          if (_this.props.preventDefault) {
+            event.preventDefault();
+          }
+
+          if (_this.props.stopPropagation) {
+            event.stopPropagation();
+          }
+
+          if (_this.props.excludeScrollbar && clickedScrollbar(event)) return;
+          var current = event.target;
+
+          if (findHighest(current, _this.componentNode, _this.props.outsideClickIgnoreClass) !== document) {
+            return;
+          }
+
+          _this.__outsideClickHandler(event);
+        };
+
+        events.forEach(function (eventName) {
+          document.addEventListener(eventName, handlersMap[_this._uid], getEventHandlerOptions(_this, eventName));
+        });
+      };
+
+      _this.disableOnClickOutside = function () {
+        delete enabledInstances[_this._uid];
+        var fn = handlersMap[_this._uid];
+
+        if (fn && typeof document !== 'undefined') {
+          var events = _this.props.eventTypes;
+
+          if (!events.forEach) {
+            events = [events];
+          }
+
+          events.forEach(function (eventName) {
+            return document.removeEventListener(eventName, fn, getEventHandlerOptions(_this, eventName));
+          });
+          delete handlersMap[_this._uid];
+        }
+      };
+
+      _this.getRef = function (ref) {
+        return _this.instanceRef = ref;
+      };
+
+      _this._uid = uid();
+      return _this;
+    }
+    /**
+     * Access the WrappedComponent's instance.
+     */
+
+
+    var _proto = onClickOutside.prototype;
+
+    _proto.getInstance = function getInstance() {
+      if (!WrappedComponent.prototype.isReactComponent) {
+        return this;
+      }
+
+      var ref = this.instanceRef;
+      return ref.getInstance ? ref.getInstance() : ref;
+    };
+
+    /**
+     * Add click listeners to the current document,
+     * linked to this component's state.
+     */
+    _proto.componentDidMount = function componentDidMount() {
+      // If we are in an environment without a DOM such
+      // as shallow rendering or snapshots then we exit
+      // early to prevent any unhandled errors being thrown.
+      if (typeof document === 'undefined' || !document.createElement) {
+        return;
+      }
+
+      var instance = this.getInstance();
+
+      if (config && typeof config.handleClickOutside === 'function') {
+        this.__clickOutsideHandlerProp = config.handleClickOutside(instance);
+
+        if (typeof this.__clickOutsideHandlerProp !== 'function') {
+          throw new Error("WrappedComponent: " + componentName + " lacks a function for processing outside click events specified by the handleClickOutside config option.");
+        }
+      }
+
+      this.componentNode = this.__getComponentNode(); // return early so we dont initiate onClickOutside
+
+      if (this.props.disableOnClickOutside) return;
+      this.enableOnClickOutside();
+    };
+
+    _proto.componentDidUpdate = function componentDidUpdate() {
+      this.componentNode = this.__getComponentNode();
+    };
+    /**
+     * Remove all document's event listeners for this component
+     */
+
+
+    _proto.componentWillUnmount = function componentWillUnmount() {
+      this.disableOnClickOutside();
+    };
+    /**
+     * Can be called to explicitly enable event listening
+     * for clicks and touches outside of this element.
+     */
+
+
+    /**
+     * Pass-through render
+     */
+    _proto.render = function render() {
+      // eslint-disable-next-line no-unused-vars
+      var _props = this.props,
+          excludeScrollbar = _props.excludeScrollbar,
+          props = _objectWithoutProperties(_props, ["excludeScrollbar"]);
+
+      if (WrappedComponent.prototype.isReactComponent) {
+        props.ref = this.getRef;
+      } else {
+        props.wrappedRef = this.getRef;
+      }
+
+      props.disableOnClickOutside = this.disableOnClickOutside;
+      props.enableOnClickOutside = this.enableOnClickOutside;
+      return Object(react__WEBPACK_IMPORTED_MODULE_0__["createElement"])(WrappedComponent, props);
+    };
+
+    return onClickOutside;
+  }(react__WEBPACK_IMPORTED_MODULE_0__["Component"]), _class.displayName = "OnClickOutside(" + componentName + ")", _class.defaultProps = {
+    eventTypes: ['mousedown', 'touchstart'],
+    excludeScrollbar: config && config.excludeScrollbar || false,
+    outsideClickIgnoreClass: IGNORE_CLASS_NAME,
+    preventDefault: false,
+    stopPropagation: false
+  }, _class.getClass = function () {
+    return WrappedComponent.getClass ? WrappedComponent.getClass() : WrappedComponent;
+  }, _temp;
+}
+
+
+/* harmony default export */ __webpack_exports__["default"] = (onClickOutsideHOC);
+
+
+/***/ }),
+
 /***/ "./node_modules/react/cjs/react.development.js":
 /*!*****************************************************!*\
   !*** ./node_modules/react/cjs/react.development.js ***!
@@ -86362,2826 +89817,6 @@ if(false) {}
 
 /***/ }),
 
-/***/ "./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css":
-/*!********************************************************************************************!*\
-  !*** ./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css ***!
-  \********************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-
-var content = __webpack_require__(/*! !../../../css-loader??ref--6-1!../../../postcss-loader/src??ref--6-2!./tempusdominus-bootstrap-4.min.css */ "./node_modules/css-loader/index.js?!./node_modules/postcss-loader/src/index.js?!./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css");
-
-if(typeof content === 'string') content = [[module.i, content, '']];
-
-var transform;
-var insertInto;
-
-
-
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(/*! ../../../style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
-
-/***/ }),
-
-/***/ "./node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js":
-/*!**************************************************************************************!*\
-  !*** ./node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js ***!
-  \**************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/*@preserve
- * Tempus Dominus Bootstrap4 v5.1.2 (https://tempusdominus.github.io/bootstrap-4/)
- * Copyright 2016-2018 Jonathan Peterson
- * Licensed under MIT (https://github.com/tempusdominus/bootstrap-3/blob/master/LICENSE)
- */
-
-if (typeof jQuery === 'undefined') {
-  throw new Error('Tempus Dominus Bootstrap4\'s requires jQuery. jQuery must be included before Tempus Dominus Bootstrap4\'s JavaScript.');
-}
-
-+function ($) {
-  var version = $.fn.jquery.split(' ')[0].split('.');
-  if ((version[0] < 2 && version[1] < 9) || (version[0] === 1 && version[1] === 9 && version[2] < 1) || (version[0] >= 4)) {
-    throw new Error('Tempus Dominus Bootstrap4\'s requires at least jQuery v3.0.0 but less than v4.0.0');
-  }
-}(jQuery);
-
-
-if (typeof moment === 'undefined') {
-  throw new Error('Tempus Dominus Bootstrap4\'s requires moment.js. Moment.js must be included before Tempus Dominus Bootstrap4\'s JavaScript.');
-}
-
-var version = moment.version.split('.')
-if ((version[0] <= 2 && version[1] < 17) || (version[0] >= 3)) {
-  throw new Error('Tempus Dominus Bootstrap4\'s requires at least moment.js v2.17.0 but less than v3.0.0');
-}
-
-+function () {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// ReSharper disable once InconsistentNaming
-var DateTimePicker = function ($, moment) {
-    // ReSharper disable InconsistentNaming
-    var NAME = 'datetimepicker',
-        DATA_KEY = '' + NAME,
-        EVENT_KEY = '.' + DATA_KEY,
-        DATA_API_KEY = '.data-api',
-        Selector = {
-        DATA_TOGGLE: '[data-toggle="' + DATA_KEY + '"]'
-    },
-        ClassName = {
-        INPUT: NAME + '-input'
-    },
-        Event = {
-        CHANGE: 'change' + EVENT_KEY,
-        BLUR: 'blur' + EVENT_KEY,
-        KEYUP: 'keyup' + EVENT_KEY,
-        KEYDOWN: 'keydown' + EVENT_KEY,
-        FOCUS: 'focus' + EVENT_KEY,
-        CLICK_DATA_API: 'click' + EVENT_KEY + DATA_API_KEY,
-        //emitted
-        UPDATE: 'update' + EVENT_KEY,
-        ERROR: 'error' + EVENT_KEY,
-        HIDE: 'hide' + EVENT_KEY,
-        SHOW: 'show' + EVENT_KEY
-    },
-        DatePickerModes = [{
-        CLASS_NAME: 'days',
-        NAV_FUNCTION: 'M',
-        NAV_STEP: 1
-    }, {
-        CLASS_NAME: 'months',
-        NAV_FUNCTION: 'y',
-        NAV_STEP: 1
-    }, {
-        CLASS_NAME: 'years',
-        NAV_FUNCTION: 'y',
-        NAV_STEP: 10
-    }, {
-        CLASS_NAME: 'decades',
-        NAV_FUNCTION: 'y',
-        NAV_STEP: 100
-    }],
-        KeyMap = {
-        'up': 38,
-        38: 'up',
-        'down': 40,
-        40: 'down',
-        'left': 37,
-        37: 'left',
-        'right': 39,
-        39: 'right',
-        'tab': 9,
-        9: 'tab',
-        'escape': 27,
-        27: 'escape',
-        'enter': 13,
-        13: 'enter',
-        'pageUp': 33,
-        33: 'pageUp',
-        'pageDown': 34,
-        34: 'pageDown',
-        'shift': 16,
-        16: 'shift',
-        'control': 17,
-        17: 'control',
-        'space': 32,
-        32: 'space',
-        't': 84,
-        84: 't',
-        'delete': 46,
-        46: 'delete'
-    },
-        ViewModes = ['times', 'days', 'months', 'years', 'decades'],
-        keyState = {},
-        keyPressHandled = {};
-
-    var Default = {
-        timeZone: '',
-        format: false,
-        dayViewHeaderFormat: 'MMMM YYYY',
-        extraFormats: false,
-        stepping: 1,
-        minDate: false,
-        maxDate: false,
-        useCurrent: true,
-        collapse: true,
-        locale: moment.locale(),
-        defaultDate: false,
-        disabledDates: false,
-        enabledDates: false,
-        icons: {
-            time: 'fa fa-clock-o',
-            date: 'fa fa-calendar',
-            up: 'fa fa-arrow-up',
-            down: 'fa fa-arrow-down',
-            previous: 'fa fa-chevron-left',
-            next: 'fa fa-chevron-right',
-            today: 'fa fa-calendar-check-o',
-            clear: 'fa fa-delete',
-            close: 'fa fa-times'
-        },
-        tooltips: {
-            today: 'Go to today',
-            clear: 'Clear selection',
-            close: 'Close the picker',
-            selectMonth: 'Select Month',
-            prevMonth: 'Previous Month',
-            nextMonth: 'Next Month',
-            selectYear: 'Select Year',
-            prevYear: 'Previous Year',
-            nextYear: 'Next Year',
-            selectDecade: 'Select Decade',
-            prevDecade: 'Previous Decade',
-            nextDecade: 'Next Decade',
-            prevCentury: 'Previous Century',
-            nextCentury: 'Next Century',
-            pickHour: 'Pick Hour',
-            incrementHour: 'Increment Hour',
-            decrementHour: 'Decrement Hour',
-            pickMinute: 'Pick Minute',
-            incrementMinute: 'Increment Minute',
-            decrementMinute: 'Decrement Minute',
-            pickSecond: 'Pick Second',
-            incrementSecond: 'Increment Second',
-            decrementSecond: 'Decrement Second',
-            togglePeriod: 'Toggle Period',
-            selectTime: 'Select Time',
-            selectDate: 'Select Date'
-        },
-        useStrict: false,
-        sideBySide: false,
-        daysOfWeekDisabled: false,
-        calendarWeeks: false,
-        viewMode: 'days',
-        toolbarPlacement: 'default',
-        buttons: {
-            showToday: false,
-            showClear: false,
-            showClose: false
-        },
-        widgetPositioning: {
-            horizontal: 'auto',
-            vertical: 'auto'
-        },
-        widgetParent: null,
-        ignoreReadonly: false,
-        keepOpen: false,
-        focusOnShow: true,
-        inline: false,
-        keepInvalid: false,
-        keyBinds: {
-            up: function up() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().subtract(7, 'd'));
-                } else {
-                    this.date(d.clone().add(this.stepping(), 'm'));
-                }
-                return true;
-            },
-            down: function down() {
-                if (!this.widget) {
-                    this.show();
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().add(7, 'd'));
-                } else {
-                    this.date(d.clone().subtract(this.stepping(), 'm'));
-                }
-                return true;
-            },
-            'control up': function controlUp() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().subtract(1, 'y'));
-                } else {
-                    this.date(d.clone().add(1, 'h'));
-                }
-                return true;
-            },
-            'control down': function controlDown() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().add(1, 'y'));
-                } else {
-                    this.date(d.clone().subtract(1, 'h'));
-                }
-                return true;
-            },
-            left: function left() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().subtract(1, 'd'));
-                }
-                return true;
-            },
-            right: function right() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().add(1, 'd'));
-                }
-                return true;
-            },
-            pageUp: function pageUp() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().subtract(1, 'M'));
-                }
-                return true;
-            },
-            pageDown: function pageDown() {
-                if (!this.widget) {
-                    return false;
-                }
-                var d = this._dates[0] || this.getMoment();
-                if (this.widget.find('.datepicker').is(':visible')) {
-                    this.date(d.clone().add(1, 'M'));
-                }
-                return true;
-            },
-            enter: function enter() {
-                if (!this.widget) {
-                    return false;
-                }
-                this.hide();
-                return true;
-            },
-            escape: function escape() {
-                if (!this.widget) {
-                    return false;
-                }
-                this.hide();
-                return true;
-            },
-            'control space': function controlSpace() {
-                if (!this.widget) {
-                    return false;
-                }
-                if (this.widget.find('.timepicker').is(':visible')) {
-                    this.widget.find('.btn[data-action="togglePeriod"]').click();
-                }
-                return true;
-            },
-            t: function t() {
-                if (!this.widget) {
-                    return false;
-                }
-                this.date(this.getMoment());
-                return true;
-            },
-            'delete': function _delete() {
-                if (!this.widget) {
-                    return false;
-                }
-                this.clear();
-                return true;
-            }
-        },
-        debug: false,
-        allowInputToggle: false,
-        disabledTimeIntervals: false,
-        disabledHours: false,
-        enabledHours: false,
-        viewDate: false,
-        allowMultidate: false,
-        multidateSeparator: ','
-    };
-
-    // ReSharper restore InconsistentNaming
-
-    // ReSharper disable once DeclarationHides
-    // ReSharper disable once InconsistentNaming
-
-    var DateTimePicker = function () {
-        /** @namespace eData.dateOptions */
-        /** @namespace moment.tz */
-
-        function DateTimePicker(element, options) {
-            _classCallCheck(this, DateTimePicker);
-
-            this._options = this._getOptions(options);
-            this._element = element;
-            this._dates = [];
-            this._datesFormatted = [];
-            this._viewDate = null;
-            this.unset = true;
-            this.component = false;
-            this.widget = false;
-            this.use24Hours = null;
-            this.actualFormat = null;
-            this.parseFormats = null;
-            this.currentViewMode = null;
-            this.MinViewModeNumber = 0;
-
-            this._int();
-        }
-
-        /**
-         * @return {string}
-         */
-
-
-        //private
-
-        DateTimePicker.prototype._int = function _int() {
-            var targetInput = this._element.data('target-input');
-            if (this._element.is('input')) {
-                this.input = this._element;
-            } else if (targetInput !== undefined) {
-                if (targetInput === 'nearest') {
-                    this.input = this._element.find('input');
-                } else {
-                    this.input = $(targetInput);
-                }
-            }
-
-            this._dates = [];
-            this._dates[0] = this.getMoment();
-            this._viewDate = this.getMoment().clone();
-
-            $.extend(true, this._options, this._dataToOptions());
-
-            this.options(this._options);
-
-            this._initFormatting();
-
-            if (this.input !== undefined && this.input.is('input') && this.input.val().trim().length !== 0) {
-                this._setValue(this._parseInputDate(this.input.val().trim()), 0);
-            } else if (this._options.defaultDate && this.input !== undefined && this.input.attr('placeholder') === undefined) {
-                this._setValue(this._options.defaultDate, 0);
-            }
-            if (this._options.inline) {
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype._update = function _update() {
-            if (!this.widget) {
-                return;
-            }
-            this._fillDate();
-            this._fillTime();
-        };
-
-        DateTimePicker.prototype._setValue = function _setValue(targetMoment, index) {
-            var oldDate = this.unset ? null : this._dates[index];
-            var outpValue = '';
-            // case of calling setValue(null or false)
-            if (!targetMoment) {
-                if (!this._options.allowMultidate || this._dates.length === 1) {
-                    this.unset = true;
-                    this._dates = [];
-                    this._datesFormatted = [];
-                } else {
-                    outpValue = this._element.data('date') + ',';
-                    outpValue = outpValue.replace(oldDate.format(this.actualFormat) + ',', '').replace(',,', '').replace(/,\s*$/, '');
-                    this._dates.splice(index, 1);
-                    this._datesFormatted.splice(index, 1);
-                }
-                if (this.input !== undefined) {
-                    this.input.val(outpValue);
-                    this.input.trigger('input');
-                }
-                this._element.data('date', outpValue);
-                this._notifyEvent({
-                    type: DateTimePicker.Event.CHANGE,
-                    date: false,
-                    oldDate: oldDate
-                });
-                this._update();
-                return;
-            }
-
-            targetMoment = targetMoment.clone().locale(this._options.locale);
-
-            if (this._hasTimeZone()) {
-                targetMoment.tz(this._options.timeZone);
-            }
-
-            if (this._options.stepping !== 1) {
-                targetMoment.minutes(Math.round(targetMoment.minutes() / this._options.stepping) * this._options.stepping).seconds(0);
-            }
-
-            if (this._isValid(targetMoment)) {
-                this._dates[index] = targetMoment;
-                this._datesFormatted[index] = targetMoment.format('YYYY-MM-DD');
-                this._viewDate = targetMoment.clone();
-                if (this._options.allowMultidate && this._dates.length > 1) {
-                    for (var i = 0; i < this._dates.length; i++) {
-                        outpValue += '' + this._dates[i].format(this.actualFormat) + this._options.multidateSeparator;
-                    }
-                    outpValue = outpValue.replace(/,\s*$/, '');
-                } else {
-                    outpValue = this._dates[index].format(this.actualFormat);
-                }
-                if (this.input !== undefined) {
-                    this.input.val(outpValue);
-                    this.input.trigger('input');
-                }
-                this._element.data('date', outpValue);
-
-                this.unset = false;
-                this._update();
-                this._notifyEvent({
-                    type: DateTimePicker.Event.CHANGE,
-                    date: this._dates[index].clone(),
-                    oldDate: oldDate
-                });
-            } else {
-                if (!this._options.keepInvalid) {
-                    if (this.input !== undefined) {
-                        this.input.val('' + (this.unset ? '' : this._dates[index].format(this.actualFormat)));
-                        this.input.trigger('input');
-                    }
-                } else {
-                    this._notifyEvent({
-                        type: DateTimePicker.Event.CHANGE,
-                        date: targetMoment,
-                        oldDate: oldDate
-                    });
-                }
-                this._notifyEvent({
-                    type: DateTimePicker.Event.ERROR,
-                    date: targetMoment,
-                    oldDate: oldDate
-                });
-            }
-        };
-
-        DateTimePicker.prototype._change = function _change(e) {
-            var val = $(e.target).val().trim(),
-                parsedDate = val ? this._parseInputDate(val) : null;
-            this._setValue(parsedDate);
-            e.stopImmediatePropagation();
-            return false;
-        };
-
-        //noinspection JSMethodCanBeStatic
-
-
-        DateTimePicker.prototype._getOptions = function _getOptions(options) {
-            options = $.extend(true, {}, Default, options);
-            return options;
-        };
-
-        DateTimePicker.prototype._hasTimeZone = function _hasTimeZone() {
-            return moment.tz !== undefined && this._options.timeZone !== undefined && this._options.timeZone !== null && this._options.timeZone !== '';
-        };
-
-        DateTimePicker.prototype._isEnabled = function _isEnabled(granularity) {
-            if (typeof granularity !== 'string' || granularity.length > 1) {
-                throw new TypeError('isEnabled expects a single character string parameter');
-            }
-            switch (granularity) {
-                case 'y':
-                    return this.actualFormat.indexOf('Y') !== -1;
-                case 'M':
-                    return this.actualFormat.indexOf('M') !== -1;
-                case 'd':
-                    return this.actualFormat.toLowerCase().indexOf('d') !== -1;
-                case 'h':
-                case 'H':
-                    return this.actualFormat.toLowerCase().indexOf('h') !== -1;
-                case 'm':
-                    return this.actualFormat.indexOf('m') !== -1;
-                case 's':
-                    return this.actualFormat.indexOf('s') !== -1;
-                case 'a':
-                case 'A':
-                    return this.actualFormat.toLowerCase().indexOf('a') !== -1;
-                default:
-                    return false;
-            }
-        };
-
-        DateTimePicker.prototype._hasTime = function _hasTime() {
-            return this._isEnabled('h') || this._isEnabled('m') || this._isEnabled('s');
-        };
-
-        DateTimePicker.prototype._hasDate = function _hasDate() {
-            return this._isEnabled('y') || this._isEnabled('M') || this._isEnabled('d');
-        };
-
-        DateTimePicker.prototype._dataToOptions = function _dataToOptions() {
-            var eData = this._element.data();
-            var dataOptions = {};
-
-            if (eData.dateOptions && eData.dateOptions instanceof Object) {
-                dataOptions = $.extend(true, dataOptions, eData.dateOptions);
-            }
-
-            $.each(this._options, function (key) {
-                var attributeName = 'date' + key.charAt(0).toUpperCase() + key.slice(1); //todo data api key
-                if (eData[attributeName] !== undefined) {
-                    dataOptions[key] = eData[attributeName];
-                } else {
-                    delete dataOptions[key];
-                }
-            });
-            return dataOptions;
-        };
-
-        DateTimePicker.prototype._notifyEvent = function _notifyEvent(e) {
-            if (e.type === DateTimePicker.Event.CHANGE && (e.date && e.date.isSame(e.oldDate)) || !e.date && !e.oldDate) {
-                return;
-            }
-            this._element.trigger(e);
-        };
-
-        DateTimePicker.prototype._viewUpdate = function _viewUpdate(e) {
-            if (e === 'y') {
-                e = 'YYYY';
-            }
-            this._notifyEvent({
-                type: DateTimePicker.Event.UPDATE,
-                change: e,
-                viewDate: this._viewDate.clone()
-            });
-        };
-
-        DateTimePicker.prototype._showMode = function _showMode(dir) {
-            if (!this.widget) {
-                return;
-            }
-            if (dir) {
-                this.currentViewMode = Math.max(this.MinViewModeNumber, Math.min(3, this.currentViewMode + dir));
-            }
-            this.widget.find('.datepicker > div').hide().filter('.datepicker-' + DatePickerModes[this.currentViewMode].CLASS_NAME).show();
-        };
-
-        DateTimePicker.prototype._isInDisabledDates = function _isInDisabledDates(testDate) {
-            return this._options.disabledDates[testDate.format('YYYY-MM-DD')] === true;
-        };
-
-        DateTimePicker.prototype._isInEnabledDates = function _isInEnabledDates(testDate) {
-            return this._options.enabledDates[testDate.format('YYYY-MM-DD')] === true;
-        };
-
-        DateTimePicker.prototype._isInDisabledHours = function _isInDisabledHours(testDate) {
-            return this._options.disabledHours[testDate.format('H')] === true;
-        };
-
-        DateTimePicker.prototype._isInEnabledHours = function _isInEnabledHours(testDate) {
-            return this._options.enabledHours[testDate.format('H')] === true;
-        };
-
-        DateTimePicker.prototype._isValid = function _isValid(targetMoment, granularity) {
-            if (!targetMoment.isValid()) {
-                return false;
-            }
-            if (this._options.disabledDates && granularity === 'd' && this._isInDisabledDates(targetMoment)) {
-                return false;
-            }
-            if (this._options.enabledDates && granularity === 'd' && !this._isInEnabledDates(targetMoment)) {
-                return false;
-            }
-            if (this._options.minDate && targetMoment.isBefore(this._options.minDate, granularity)) {
-                return false;
-            }
-            if (this._options.maxDate && targetMoment.isAfter(this._options.maxDate, granularity)) {
-                return false;
-            }
-            if (this._options.daysOfWeekDisabled && granularity === 'd' && this._options.daysOfWeekDisabled.indexOf(targetMoment.day()) !== -1) {
-                return false;
-            }
-            if (this._options.disabledHours && (granularity === 'h' || granularity === 'm' || granularity === 's') && this._isInDisabledHours(targetMoment)) {
-                return false;
-            }
-            if (this._options.enabledHours && (granularity === 'h' || granularity === 'm' || granularity === 's') && !this._isInEnabledHours(targetMoment)) {
-                return false;
-            }
-            if (this._options.disabledTimeIntervals && (granularity === 'h' || granularity === 'm' || granularity === 's')) {
-                var found = false;
-                $.each(this._options.disabledTimeIntervals, function () {
-                    if (targetMoment.isBetween(this[0], this[1])) {
-                        found = true;
-                        return false;
-                    }
-                });
-                if (found) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        DateTimePicker.prototype._parseInputDate = function _parseInputDate(inputDate) {
-            if (this._options.parseInputDate === undefined) {
-                if (!moment.isMoment(inputDate)) {
-                    inputDate = this.getMoment(inputDate);
-                }
-            } else {
-                inputDate = this._options.parseInputDate(inputDate);
-            }
-            //inputDate.locale(this.options.locale);
-            return inputDate;
-        };
-
-        DateTimePicker.prototype._keydown = function _keydown(e) {
-            var handler = null,
-                index = void 0,
-                index2 = void 0,
-                keyBindKeys = void 0,
-                allModifiersPressed = void 0;
-            var pressedKeys = [],
-                pressedModifiers = {},
-                currentKey = e.which,
-                pressed = 'p';
-
-            keyState[currentKey] = pressed;
-
-            for (index in keyState) {
-                if (keyState.hasOwnProperty(index) && keyState[index] === pressed) {
-                    pressedKeys.push(index);
-                    if (parseInt(index, 10) !== currentKey) {
-                        pressedModifiers[index] = true;
-                    }
-                }
-            }
-
-            for (index in this._options.keyBinds) {
-                if (this._options.keyBinds.hasOwnProperty(index) && typeof this._options.keyBinds[index] === 'function') {
-                    keyBindKeys = index.split(' ');
-                    if (keyBindKeys.length === pressedKeys.length && KeyMap[currentKey] === keyBindKeys[keyBindKeys.length - 1]) {
-                        allModifiersPressed = true;
-                        for (index2 = keyBindKeys.length - 2; index2 >= 0; index2--) {
-                            if (!(KeyMap[keyBindKeys[index2]] in pressedModifiers)) {
-                                allModifiersPressed = false;
-                                break;
-                            }
-                        }
-                        if (allModifiersPressed) {
-                            handler = this._options.keyBinds[index];
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (handler) {
-                if (handler.call(this)) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                }
-            }
-        };
-
-        //noinspection JSMethodCanBeStatic,SpellCheckingInspection
-
-
-        DateTimePicker.prototype._keyup = function _keyup(e) {
-            keyState[e.which] = 'r';
-            if (keyPressHandled[e.which]) {
-                keyPressHandled[e.which] = false;
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        };
-
-        DateTimePicker.prototype._indexGivenDates = function _indexGivenDates(givenDatesArray) {
-            // Store given enabledDates and disabledDates as keys.
-            // This way we can check their existence in O(1) time instead of looping through whole array.
-            // (for example: options.enabledDates['2014-02-27'] === true)
-            var givenDatesIndexed = {},
-                self = this;
-            $.each(givenDatesArray, function () {
-                var dDate = self._parseInputDate(this);
-                if (dDate.isValid()) {
-                    givenDatesIndexed[dDate.format('YYYY-MM-DD')] = true;
-                }
-            });
-            return Object.keys(givenDatesIndexed).length ? givenDatesIndexed : false;
-        };
-
-        DateTimePicker.prototype._indexGivenHours = function _indexGivenHours(givenHoursArray) {
-            // Store given enabledHours and disabledHours as keys.
-            // This way we can check their existence in O(1) time instead of looping through whole array.
-            // (for example: options.enabledHours['2014-02-27'] === true)
-            var givenHoursIndexed = {};
-            $.each(givenHoursArray, function () {
-                givenHoursIndexed[this] = true;
-            });
-            return Object.keys(givenHoursIndexed).length ? givenHoursIndexed : false;
-        };
-
-        DateTimePicker.prototype._initFormatting = function _initFormatting() {
-            var format = this._options.format || 'L LT',
-                self = this;
-
-            this.actualFormat = format.replace(/(\[[^\[]*])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g, function (formatInput) {
-                return self._dates[0].localeData().longDateFormat(formatInput) || formatInput; //todo taking the first date should be ok
-            });
-
-            this.parseFormats = this._options.extraFormats ? this._options.extraFormats.slice() : [];
-            if (this.parseFormats.indexOf(format) < 0 && this.parseFormats.indexOf(this.actualFormat) < 0) {
-                this.parseFormats.push(this.actualFormat);
-            }
-
-            this.use24Hours = this.actualFormat.toLowerCase().indexOf('a') < 1 && this.actualFormat.replace(/\[.*?]/g, '').indexOf('h') < 1;
-
-            if (this._isEnabled('y')) {
-                this.MinViewModeNumber = 2;
-            }
-            if (this._isEnabled('M')) {
-                this.MinViewModeNumber = 1;
-            }
-            if (this._isEnabled('d')) {
-                this.MinViewModeNumber = 0;
-            }
-
-            this.currentViewMode = Math.max(this.MinViewModeNumber, this.currentViewMode);
-
-            if (!this.unset) {
-                this._setValue(this._dates[0], 0);
-            }
-        };
-
-        DateTimePicker.prototype._getLastPickedDate = function _getLastPickedDate() {
-            return this._dates[this._getLastPickedDateIndex()];
-        };
-
-        DateTimePicker.prototype._getLastPickedDateIndex = function _getLastPickedDateIndex() {
-            return this._dates.length - 1;
-        };
-
-        //public
-
-
-        DateTimePicker.prototype.getMoment = function getMoment(d) {
-            var returnMoment = void 0;
-
-            if (d === undefined || d === null) {
-                returnMoment = moment(); //TODO should this use format? and locale?
-            } else if (this._hasTimeZone()) {
-                // There is a string to parse and a default time zone
-                // parse with the tz function which takes a default time zone if it is not in the format string
-                returnMoment = moment.tz(d, this.parseFormats, this._options.locale, this._options.useStrict, this._options.timeZone);
-            } else {
-                returnMoment = moment(d, this.parseFormats, this._options.locale, this._options.useStrict);
-            }
-
-            if (this._hasTimeZone()) {
-                returnMoment.tz(this._options.timeZone);
-            }
-
-            return returnMoment;
-        };
-
-        DateTimePicker.prototype.toggle = function toggle() {
-            return this.widget ? this.hide() : this.show();
-        };
-
-        DateTimePicker.prototype.ignoreReadonly = function ignoreReadonly(_ignoreReadonly) {
-            if (arguments.length === 0) {
-                return this._options.ignoreReadonly;
-            }
-            if (typeof _ignoreReadonly !== 'boolean') {
-                throw new TypeError('ignoreReadonly () expects a boolean parameter');
-            }
-            this._options.ignoreReadonly = _ignoreReadonly;
-        };
-
-        DateTimePicker.prototype.options = function options(newOptions) {
-            if (arguments.length === 0) {
-                return $.extend(true, {}, this._options);
-            }
-
-            if (!(newOptions instanceof Object)) {
-                throw new TypeError('options() this.options parameter should be an object');
-            }
-            $.extend(true, this._options, newOptions);
-            var self = this;
-            $.each(this._options, function (key, value) {
-                if (self[key] !== undefined) {
-                    self[key](value);
-                }
-            });
-        };
-
-        DateTimePicker.prototype.date = function date(newDate, index) {
-            index = index || 0;
-            if (arguments.length === 0) {
-                if (this.unset) {
-                    return null;
-                }
-                if (this._options.allowMultidate) {
-                    return this._dates.join(this._options.multidateSeparator);
-                } else {
-                    return this._dates[index].clone();
-                }
-            }
-
-            if (newDate !== null && typeof newDate !== 'string' && !moment.isMoment(newDate) && !(newDate instanceof Date)) {
-                throw new TypeError('date() parameter must be one of [null, string, moment or Date]');
-            }
-
-            this._setValue(newDate === null ? null : this._parseInputDate(newDate), index);
-        };
-
-        DateTimePicker.prototype.format = function format(newFormat) {
-            if (arguments.length === 0) {
-                return this._options.format;
-            }
-
-            if (typeof newFormat !== 'string' && (typeof newFormat !== 'boolean' || newFormat !== false)) {
-                throw new TypeError('format() expects a string or boolean:false parameter ' + newFormat);
-            }
-
-            this._options.format = newFormat;
-            if (this.actualFormat) {
-                this._initFormatting(); // reinitialize formatting
-            }
-        };
-
-        DateTimePicker.prototype.timeZone = function timeZone(newZone) {
-            if (arguments.length === 0) {
-                return this._options.timeZone;
-            }
-
-            if (typeof newZone !== 'string') {
-                throw new TypeError('newZone() expects a string parameter');
-            }
-
-            this._options.timeZone = newZone;
-        };
-
-        DateTimePicker.prototype.dayViewHeaderFormat = function dayViewHeaderFormat(newFormat) {
-            if (arguments.length === 0) {
-                return this._options.dayViewHeaderFormat;
-            }
-
-            if (typeof newFormat !== 'string') {
-                throw new TypeError('dayViewHeaderFormat() expects a string parameter');
-            }
-
-            this._options.dayViewHeaderFormat = newFormat;
-        };
-
-        DateTimePicker.prototype.extraFormats = function extraFormats(formats) {
-            if (arguments.length === 0) {
-                return this._options.extraFormats;
-            }
-
-            if (formats !== false && !(formats instanceof Array)) {
-                throw new TypeError('extraFormats() expects an array or false parameter');
-            }
-
-            this._options.extraFormats = formats;
-            if (this.parseFormats) {
-                this._initFormatting(); // reinit formatting
-            }
-        };
-
-        DateTimePicker.prototype.disabledDates = function disabledDates(dates) {
-            if (arguments.length === 0) {
-                return this._options.disabledDates ? $.extend({}, this._options.disabledDates) : this._options.disabledDates;
-            }
-
-            if (!dates) {
-                this._options.disabledDates = false;
-                this._update();
-                return true;
-            }
-            if (!(dates instanceof Array)) {
-                throw new TypeError('disabledDates() expects an array parameter');
-            }
-            this._options.disabledDates = this._indexGivenDates(dates);
-            this._options.enabledDates = false;
-            this._update();
-        };
-
-        DateTimePicker.prototype.enabledDates = function enabledDates(dates) {
-            if (arguments.length === 0) {
-                return this._options.enabledDates ? $.extend({}, this._options.enabledDates) : this._options.enabledDates;
-            }
-
-            if (!dates) {
-                this._options.enabledDates = false;
-                this._update();
-                return true;
-            }
-            if (!(dates instanceof Array)) {
-                throw new TypeError('enabledDates() expects an array parameter');
-            }
-            this._options.enabledDates = this._indexGivenDates(dates);
-            this._options.disabledDates = false;
-            this._update();
-        };
-
-        DateTimePicker.prototype.daysOfWeekDisabled = function daysOfWeekDisabled(_daysOfWeekDisabled) {
-            if (arguments.length === 0) {
-                return this._options.daysOfWeekDisabled.splice(0);
-            }
-
-            if (typeof _daysOfWeekDisabled === 'boolean' && !_daysOfWeekDisabled) {
-                this._options.daysOfWeekDisabled = false;
-                this._update();
-                return true;
-            }
-
-            if (!(_daysOfWeekDisabled instanceof Array)) {
-                throw new TypeError('daysOfWeekDisabled() expects an array parameter');
-            }
-            this._options.daysOfWeekDisabled = _daysOfWeekDisabled.reduce(function (previousValue, currentValue) {
-                currentValue = parseInt(currentValue, 10);
-                if (currentValue > 6 || currentValue < 0 || isNaN(currentValue)) {
-                    return previousValue;
-                }
-                if (previousValue.indexOf(currentValue) === -1) {
-                    previousValue.push(currentValue);
-                }
-                return previousValue;
-            }, []).sort();
-            if (this._options.useCurrent && !this._options.keepInvalid) {
-                for (var i = 0; i < this._dates.length; i++) {
-                    var tries = 0;
-                    while (!this._isValid(this._dates[i], 'd')) {
-                        this._dates[i].add(1, 'd');
-                        if (tries === 31) {
-                            throw 'Tried 31 times to find a valid date';
-                        }
-                        tries++;
-                    }
-                    this._setValue(this._dates[i], i);
-                }
-            }
-            this._update();
-        };
-
-        DateTimePicker.prototype.maxDate = function maxDate(_maxDate) {
-            if (arguments.length === 0) {
-                return this._options.maxDate ? this._options.maxDate.clone() : this._options.maxDate;
-            }
-
-            if (typeof _maxDate === 'boolean' && _maxDate === false) {
-                this._options.maxDate = false;
-                this._update();
-                return true;
-            }
-
-            if (typeof _maxDate === 'string') {
-                if (_maxDate === 'now' || _maxDate === 'moment') {
-                    _maxDate = this.getMoment();
-                }
-            }
-
-            var parsedDate = this._parseInputDate(_maxDate);
-
-            if (!parsedDate.isValid()) {
-                throw new TypeError('maxDate() Could not parse date parameter: ' + _maxDate);
-            }
-            if (this._options.minDate && parsedDate.isBefore(this._options.minDate)) {
-                throw new TypeError('maxDate() date parameter is before this.options.minDate: ' + parsedDate.format(this.actualFormat));
-            }
-            this._options.maxDate = parsedDate;
-            for (var i = 0; i < this._dates.length; i++) {
-                if (this._options.useCurrent && !this._options.keepInvalid && this._dates[i].isAfter(_maxDate)) {
-                    this._setValue(this._options.maxDate, i);
-                }
-            }
-            if (this._viewDate.isAfter(parsedDate)) {
-                this._viewDate = parsedDate.clone().subtract(this._options.stepping, 'm');
-            }
-            this._update();
-        };
-
-        DateTimePicker.prototype.minDate = function minDate(_minDate) {
-            if (arguments.length === 0) {
-                return this._options.minDate ? this._options.minDate.clone() : this._options.minDate;
-            }
-
-            if (typeof _minDate === 'boolean' && _minDate === false) {
-                this._options.minDate = false;
-                this._update();
-                return true;
-            }
-
-            if (typeof _minDate === 'string') {
-                if (_minDate === 'now' || _minDate === 'moment') {
-                    _minDate = this.getMoment();
-                }
-            }
-
-            var parsedDate = this._parseInputDate(_minDate);
-
-            if (!parsedDate.isValid()) {
-                throw new TypeError('minDate() Could not parse date parameter: ' + _minDate);
-            }
-            if (this._options.maxDate && parsedDate.isAfter(this._options.maxDate)) {
-                throw new TypeError('minDate() date parameter is after this.options.maxDate: ' + parsedDate.format(this.actualFormat));
-            }
-            this._options.minDate = parsedDate;
-            for (var i = 0; i < this._dates.length; i++) {
-                if (this._options.useCurrent && !this._options.keepInvalid && this._dates[i].isBefore(_minDate)) {
-                    this._setValue(this._options.minDate, i);
-                }
-            }
-            if (this._viewDate.isBefore(parsedDate)) {
-                this._viewDate = parsedDate.clone().add(this._options.stepping, 'm');
-            }
-            this._update();
-        };
-
-        DateTimePicker.prototype.defaultDate = function defaultDate(_defaultDate) {
-            if (arguments.length === 0) {
-                return this._options.defaultDate ? this._options.defaultDate.clone() : this._options.defaultDate;
-            }
-            if (!_defaultDate) {
-                this._options.defaultDate = false;
-                return true;
-            }
-
-            if (typeof _defaultDate === 'string') {
-                if (_defaultDate === 'now' || _defaultDate === 'moment') {
-                    _defaultDate = this.getMoment();
-                } else {
-                    _defaultDate = this.getMoment(_defaultDate);
-                }
-            }
-
-            var parsedDate = this._parseInputDate(_defaultDate);
-            if (!parsedDate.isValid()) {
-                throw new TypeError('defaultDate() Could not parse date parameter: ' + _defaultDate);
-            }
-            if (!this._isValid(parsedDate)) {
-                throw new TypeError('defaultDate() date passed is invalid according to component setup validations');
-            }
-
-            this._options.defaultDate = parsedDate;
-
-            if (this._options.defaultDate && this._options.inline || this.input !== undefined && this.input.val().trim() === '') {
-                this._setValue(this._options.defaultDate, 0);
-            }
-        };
-
-        DateTimePicker.prototype.locale = function locale(_locale) {
-            if (arguments.length === 0) {
-                return this._options.locale;
-            }
-
-            if (!moment.localeData(_locale)) {
-                throw new TypeError('locale() locale ' + _locale + ' is not loaded from moment locales!');
-            }
-
-            this._options.locale = _locale;
-
-            for (var i = 0; i < this._dates.length; i++) {
-                this._dates[i].locale(this._options.locale);
-            }
-            this._viewDate.locale(this._options.locale);
-
-            if (this.actualFormat) {
-                this._initFormatting(); // reinitialize formatting
-            }
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.stepping = function stepping(_stepping) {
-            if (arguments.length === 0) {
-                return this._options.stepping;
-            }
-
-            _stepping = parseInt(_stepping, 10);
-            if (isNaN(_stepping) || _stepping < 1) {
-                _stepping = 1;
-            }
-            this._options.stepping = _stepping;
-        };
-
-        DateTimePicker.prototype.useCurrent = function useCurrent(_useCurrent) {
-            var useCurrentOptions = ['year', 'month', 'day', 'hour', 'minute'];
-            if (arguments.length === 0) {
-                return this._options.useCurrent;
-            }
-
-            if (typeof _useCurrent !== 'boolean' && typeof _useCurrent !== 'string') {
-                throw new TypeError('useCurrent() expects a boolean or string parameter');
-            }
-            if (typeof _useCurrent === 'string' && useCurrentOptions.indexOf(_useCurrent.toLowerCase()) === -1) {
-                throw new TypeError('useCurrent() expects a string parameter of ' + useCurrentOptions.join(', '));
-            }
-            this._options.useCurrent = _useCurrent;
-        };
-
-        DateTimePicker.prototype.collapse = function collapse(_collapse) {
-            if (arguments.length === 0) {
-                return this._options.collapse;
-            }
-
-            if (typeof _collapse !== 'boolean') {
-                throw new TypeError('collapse() expects a boolean parameter');
-            }
-            if (this._options.collapse === _collapse) {
-                return true;
-            }
-            this._options.collapse = _collapse;
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.icons = function icons(_icons) {
-            if (arguments.length === 0) {
-                return $.extend({}, this._options.icons);
-            }
-
-            if (!(_icons instanceof Object)) {
-                throw new TypeError('icons() expects parameter to be an Object');
-            }
-
-            $.extend(this._options.icons, _icons);
-
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.tooltips = function tooltips(_tooltips) {
-            if (arguments.length === 0) {
-                return $.extend({}, this._options.tooltips);
-            }
-
-            if (!(_tooltips instanceof Object)) {
-                throw new TypeError('tooltips() expects parameter to be an Object');
-            }
-            $.extend(this._options.tooltips, _tooltips);
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.useStrict = function useStrict(_useStrict) {
-            if (arguments.length === 0) {
-                return this._options.useStrict;
-            }
-
-            if (typeof _useStrict !== 'boolean') {
-                throw new TypeError('useStrict() expects a boolean parameter');
-            }
-            this._options.useStrict = _useStrict;
-        };
-
-        DateTimePicker.prototype.sideBySide = function sideBySide(_sideBySide) {
-            if (arguments.length === 0) {
-                return this._options.sideBySide;
-            }
-
-            if (typeof _sideBySide !== 'boolean') {
-                throw new TypeError('sideBySide() expects a boolean parameter');
-            }
-            this._options.sideBySide = _sideBySide;
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.viewMode = function viewMode(_viewMode) {
-            if (arguments.length === 0) {
-                return this._options.viewMode;
-            }
-
-            if (typeof _viewMode !== 'string') {
-                throw new TypeError('viewMode() expects a string parameter');
-            }
-
-            if (DateTimePicker.ViewModes.indexOf(_viewMode) === -1) {
-                throw new TypeError('viewMode() parameter must be one of (' + DateTimePicker.ViewModes.join(', ') + ') value');
-            }
-
-            this._options.viewMode = _viewMode;
-            this.currentViewMode = Math.max(DateTimePicker.ViewModes.indexOf(_viewMode) - 1, this.MinViewModeNumber);
-
-            this._showMode();
-        };
-
-        DateTimePicker.prototype.calendarWeeks = function calendarWeeks(_calendarWeeks) {
-            if (arguments.length === 0) {
-                return this._options.calendarWeeks;
-            }
-
-            if (typeof _calendarWeeks !== 'boolean') {
-                throw new TypeError('calendarWeeks() expects parameter to be a boolean value');
-            }
-
-            this._options.calendarWeeks = _calendarWeeks;
-            this._update();
-        };
-
-        DateTimePicker.prototype.buttons = function buttons(_buttons) {
-            if (arguments.length === 0) {
-                return $.extend({}, this._options.buttons);
-            }
-
-            if (!(_buttons instanceof Object)) {
-                throw new TypeError('buttons() expects parameter to be an Object');
-            }
-
-            $.extend(this._options.buttons, _buttons);
-
-            if (typeof this._options.buttons.showToday !== 'boolean') {
-                throw new TypeError('buttons.showToday expects a boolean parameter');
-            }
-            if (typeof this._options.buttons.showClear !== 'boolean') {
-                throw new TypeError('buttons.showClear expects a boolean parameter');
-            }
-            if (typeof this._options.buttons.showClose !== 'boolean') {
-                throw new TypeError('buttons.showClose expects a boolean parameter');
-            }
-
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        DateTimePicker.prototype.keepOpen = function keepOpen(_keepOpen) {
-            if (arguments.length === 0) {
-                return this._options.keepOpen;
-            }
-
-            if (typeof _keepOpen !== 'boolean') {
-                throw new TypeError('keepOpen() expects a boolean parameter');
-            }
-
-            this._options.keepOpen = _keepOpen;
-        };
-
-        DateTimePicker.prototype.focusOnShow = function focusOnShow(_focusOnShow) {
-            if (arguments.length === 0) {
-                return this._options.focusOnShow;
-            }
-
-            if (typeof _focusOnShow !== 'boolean') {
-                throw new TypeError('focusOnShow() expects a boolean parameter');
-            }
-
-            this._options.focusOnShow = _focusOnShow;
-        };
-
-        DateTimePicker.prototype.inline = function inline(_inline) {
-            if (arguments.length === 0) {
-                return this._options.inline;
-            }
-
-            if (typeof _inline !== 'boolean') {
-                throw new TypeError('inline() expects a boolean parameter');
-            }
-
-            this._options.inline = _inline;
-        };
-
-        DateTimePicker.prototype.clear = function clear() {
-            this._setValue(null); //todo
-        };
-
-        DateTimePicker.prototype.keyBinds = function keyBinds(_keyBinds) {
-            if (arguments.length === 0) {
-                return this._options.keyBinds;
-            }
-
-            this._options.keyBinds = _keyBinds;
-        };
-
-        DateTimePicker.prototype.debug = function debug(_debug) {
-            if (typeof _debug !== 'boolean') {
-                throw new TypeError('debug() expects a boolean parameter');
-            }
-
-            this._options.debug = _debug;
-        };
-
-        DateTimePicker.prototype.allowInputToggle = function allowInputToggle(_allowInputToggle) {
-            if (arguments.length === 0) {
-                return this._options.allowInputToggle;
-            }
-
-            if (typeof _allowInputToggle !== 'boolean') {
-                throw new TypeError('allowInputToggle() expects a boolean parameter');
-            }
-
-            this._options.allowInputToggle = _allowInputToggle;
-        };
-
-        DateTimePicker.prototype.keepInvalid = function keepInvalid(_keepInvalid) {
-            if (arguments.length === 0) {
-                return this._options.keepInvalid;
-            }
-
-            if (typeof _keepInvalid !== 'boolean') {
-                throw new TypeError('keepInvalid() expects a boolean parameter');
-            }
-            this._options.keepInvalid = _keepInvalid;
-        };
-
-        DateTimePicker.prototype.datepickerInput = function datepickerInput(_datepickerInput) {
-            if (arguments.length === 0) {
-                return this._options.datepickerInput;
-            }
-
-            if (typeof _datepickerInput !== 'string') {
-                throw new TypeError('datepickerInput() expects a string parameter');
-            }
-
-            this._options.datepickerInput = _datepickerInput;
-        };
-
-        DateTimePicker.prototype.parseInputDate = function parseInputDate(_parseInputDate2) {
-            if (arguments.length === 0) {
-                return this._options.parseInputDate;
-            }
-
-            if (typeof _parseInputDate2 !== 'function') {
-                throw new TypeError('parseInputDate() should be as function');
-            }
-
-            this._options.parseInputDate = _parseInputDate2;
-        };
-
-        DateTimePicker.prototype.disabledTimeIntervals = function disabledTimeIntervals(_disabledTimeIntervals) {
-            if (arguments.length === 0) {
-                return this._options.disabledTimeIntervals ? $.extend({}, this._options.disabledTimeIntervals) : this._options.disabledTimeIntervals;
-            }
-
-            if (!_disabledTimeIntervals) {
-                this._options.disabledTimeIntervals = false;
-                this._update();
-                return true;
-            }
-            if (!(_disabledTimeIntervals instanceof Array)) {
-                throw new TypeError('disabledTimeIntervals() expects an array parameter');
-            }
-            this._options.disabledTimeIntervals = _disabledTimeIntervals;
-            this._update();
-        };
-
-        DateTimePicker.prototype.disabledHours = function disabledHours(hours) {
-            if (arguments.length === 0) {
-                return this._options.disabledHours ? $.extend({}, this._options.disabledHours) : this._options.disabledHours;
-            }
-
-            if (!hours) {
-                this._options.disabledHours = false;
-                this._update();
-                return true;
-            }
-            if (!(hours instanceof Array)) {
-                throw new TypeError('disabledHours() expects an array parameter');
-            }
-            this._options.disabledHours = this._indexGivenHours(hours);
-            this._options.enabledHours = false;
-            if (this._options.useCurrent && !this._options.keepInvalid) {
-                for (var i = 0; i < this._dates.length; i++) {
-                    var tries = 0;
-                    while (!this._isValid(this._dates[i], 'h')) {
-                        this._dates[i].add(1, 'h');
-                        if (tries === 24) {
-                            throw 'Tried 24 times to find a valid date';
-                        }
-                        tries++;
-                    }
-                    this._setValue(this._dates[i], i);
-                }
-            }
-            this._update();
-        };
-
-        DateTimePicker.prototype.enabledHours = function enabledHours(hours) {
-            if (arguments.length === 0) {
-                return this._options.enabledHours ? $.extend({}, this._options.enabledHours) : this._options.enabledHours;
-            }
-
-            if (!hours) {
-                this._options.enabledHours = false;
-                this._update();
-                return true;
-            }
-            if (!(hours instanceof Array)) {
-                throw new TypeError('enabledHours() expects an array parameter');
-            }
-            this._options.enabledHours = this._indexGivenHours(hours);
-            this._options.disabledHours = false;
-            if (this._options.useCurrent && !this._options.keepInvalid) {
-                for (var i = 0; i < this._dates.length; i++) {
-                    var tries = 0;
-                    while (!this._isValid(this._dates[i], 'h')) {
-                        this._dates[i].add(1, 'h');
-                        if (tries === 24) {
-                            throw 'Tried 24 times to find a valid date';
-                        }
-                        tries++;
-                    }
-                    this._setValue(this._dates[i], i);
-                }
-            }
-            this._update();
-        };
-
-        DateTimePicker.prototype.viewDate = function viewDate(newDate) {
-            if (arguments.length === 0) {
-                return this._viewDate.clone();
-            }
-
-            if (!newDate) {
-                this._viewDate = (this._dates[0] || this.getMoment()).clone();
-                return true;
-            }
-
-            if (typeof newDate !== 'string' && !moment.isMoment(newDate) && !(newDate instanceof Date)) {
-                throw new TypeError('viewDate() parameter must be one of [string, moment or Date]');
-            }
-
-            this._viewDate = this._parseInputDate(newDate);
-            this._viewUpdate();
-        };
-
-        DateTimePicker.prototype.allowMultidate = function allowMultidate(_allowMultidate) {
-            if (typeof _allowMultidate !== 'boolean') {
-                throw new TypeError('allowMultidate() expects a boolean parameter');
-            }
-
-            this._options.allowMultidate = _allowMultidate;
-        };
-
-        DateTimePicker.prototype.multidateSeparator = function multidateSeparator(_multidateSeparator) {
-            if (arguments.length === 0) {
-                return this._options.multidateSeparator;
-            }
-
-            if (typeof _multidateSeparator !== 'string' || _multidateSeparator.length > 1) {
-                throw new TypeError('multidateSeparator expects a single character string parameter');
-            }
-
-            this._options.multidateSeparator = _multidateSeparator;
-        };
-
-        _createClass(DateTimePicker, null, [{
-            key: 'NAME',
-            get: function get() {
-                return NAME;
-            }
-
-            /**
-             * @return {string}
-             */
-
-        }, {
-            key: 'DATA_KEY',
-            get: function get() {
-                return DATA_KEY;
-            }
-
-            /**
-             * @return {string}
-             */
-
-        }, {
-            key: 'EVENT_KEY',
-            get: function get() {
-                return EVENT_KEY;
-            }
-
-            /**
-             * @return {string}
-             */
-
-        }, {
-            key: 'DATA_API_KEY',
-            get: function get() {
-                return DATA_API_KEY;
-            }
-        }, {
-            key: 'DatePickerModes',
-            get: function get() {
-                return DatePickerModes;
-            }
-        }, {
-            key: 'ViewModes',
-            get: function get() {
-                return ViewModes;
-            }
-        }, {
-            key: 'Event',
-            get: function get() {
-                return Event;
-            }
-        }, {
-            key: 'Selector',
-            get: function get() {
-                return Selector;
-            }
-        }, {
-            key: 'Default',
-            get: function get() {
-                return Default;
-            },
-            set: function set(value) {
-                Default = value;
-            }
-        }, {
-            key: 'ClassName',
-            get: function get() {
-                return ClassName;
-            }
-        }]);
-
-        return DateTimePicker;
-    }();
-
-    return DateTimePicker;
-}(jQuery, moment);
-
-//noinspection JSUnusedGlobalSymbols
-/* global DateTimePicker */
-var TempusDominusBootstrap4 = function ($) {
-    // eslint-disable-line no-unused-vars
-    // ReSharper disable once InconsistentNaming
-    var JQUERY_NO_CONFLICT = $.fn[DateTimePicker.NAME],
-        verticalModes = ['top', 'bottom', 'auto'],
-        horizontalModes = ['left', 'right', 'auto'],
-        toolbarPlacements = ['default', 'top', 'bottom'],
-        getSelectorFromElement = function getSelectorFromElement($element) {
-        var selector = $element.data('target'),
-            $selector = void 0;
-
-        if (!selector) {
-            selector = $element.attr('href') || '';
-            selector = /^#[a-z]/i.test(selector) ? selector : null;
-        }
-        $selector = $(selector);
-        if ($selector.length === 0) {
-            return $selector;
-        }
-
-        if (!$selector.data(DateTimePicker.DATA_KEY)) {
-            $.extend({}, $selector.data(), $(this).data());
-        }
-
-        return $selector;
-    };
-
-    // ReSharper disable once InconsistentNaming
-
-    var TempusDominusBootstrap4 = function (_DateTimePicker) {
-        _inherits(TempusDominusBootstrap4, _DateTimePicker);
-
-        function TempusDominusBootstrap4(element, options) {
-            _classCallCheck(this, TempusDominusBootstrap4);
-
-            var _this = _possibleConstructorReturn(this, _DateTimePicker.call(this, element, options));
-
-            _this._init();
-            return _this;
-        }
-
-        TempusDominusBootstrap4.prototype._init = function _init() {
-            if (this._element.hasClass('input-group')) {
-                var datepickerButton = this._element.find('.datepickerbutton');
-                if (datepickerButton.length === 0) {
-                    this.component = this._element.find('[data-toggle="datetimepicker"]');
-                } else {
-                    this.component = datepickerButton;
-                }
-            }
-        };
-
-        TempusDominusBootstrap4.prototype._getDatePickerTemplate = function _getDatePickerTemplate() {
-            var headTemplate = $('<thead>').append($('<tr>').append($('<th>').addClass('prev').attr('data-action', 'previous').append($('<span>').addClass(this._options.icons.previous))).append($('<th>').addClass('picker-switch').attr('data-action', 'pickerSwitch').attr('colspan', '' + (this._options.calendarWeeks ? '6' : '5'))).append($('<th>').addClass('next').attr('data-action', 'next').append($('<span>').addClass(this._options.icons.next)))),
-                contTemplate = $('<tbody>').append($('<tr>').append($('<td>').attr('colspan', '' + (this._options.calendarWeeks ? '8' : '7'))));
-
-            return [$('<div>').addClass('datepicker-days').append($('<table>').addClass('table table-sm').append(headTemplate).append($('<tbody>'))), $('<div>').addClass('datepicker-months').append($('<table>').addClass('table-condensed').append(headTemplate.clone()).append(contTemplate.clone())), $('<div>').addClass('datepicker-years').append($('<table>').addClass('table-condensed').append(headTemplate.clone()).append(contTemplate.clone())), $('<div>').addClass('datepicker-decades').append($('<table>').addClass('table-condensed').append(headTemplate.clone()).append(contTemplate.clone()))];
-        };
-
-        TempusDominusBootstrap4.prototype._getTimePickerMainTemplate = function _getTimePickerMainTemplate() {
-            var topRow = $('<tr>'),
-                middleRow = $('<tr>'),
-                bottomRow = $('<tr>');
-
-            if (this._isEnabled('h')) {
-                topRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.incrementHour
-                }).addClass('btn').attr('data-action', 'incrementHours').append($('<span>').addClass(this._options.icons.up))));
-                middleRow.append($('<td>').append($('<span>').addClass('timepicker-hour').attr({
-                    'data-time-component': 'hours',
-                    'title': this._options.tooltips.pickHour
-                }).attr('data-action', 'showHours')));
-                bottomRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.decrementHour
-                }).addClass('btn').attr('data-action', 'decrementHours').append($('<span>').addClass(this._options.icons.down))));
-            }
-            if (this._isEnabled('m')) {
-                if (this._isEnabled('h')) {
-                    topRow.append($('<td>').addClass('separator'));
-                    middleRow.append($('<td>').addClass('separator').html(':'));
-                    bottomRow.append($('<td>').addClass('separator'));
-                }
-                topRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.incrementMinute
-                }).addClass('btn').attr('data-action', 'incrementMinutes').append($('<span>').addClass(this._options.icons.up))));
-                middleRow.append($('<td>').append($('<span>').addClass('timepicker-minute').attr({
-                    'data-time-component': 'minutes',
-                    'title': this._options.tooltips.pickMinute
-                }).attr('data-action', 'showMinutes')));
-                bottomRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.decrementMinute
-                }).addClass('btn').attr('data-action', 'decrementMinutes').append($('<span>').addClass(this._options.icons.down))));
-            }
-            if (this._isEnabled('s')) {
-                if (this._isEnabled('m')) {
-                    topRow.append($('<td>').addClass('separator'));
-                    middleRow.append($('<td>').addClass('separator').html(':'));
-                    bottomRow.append($('<td>').addClass('separator'));
-                }
-                topRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.incrementSecond
-                }).addClass('btn').attr('data-action', 'incrementSeconds').append($('<span>').addClass(this._options.icons.up))));
-                middleRow.append($('<td>').append($('<span>').addClass('timepicker-second').attr({
-                    'data-time-component': 'seconds',
-                    'title': this._options.tooltips.pickSecond
-                }).attr('data-action', 'showSeconds')));
-                bottomRow.append($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.decrementSecond
-                }).addClass('btn').attr('data-action', 'decrementSeconds').append($('<span>').addClass(this._options.icons.down))));
-            }
-
-            if (!this.use24Hours) {
-                topRow.append($('<td>').addClass('separator'));
-                middleRow.append($('<td>').append($('<button>').addClass('btn btn-primary').attr({
-                    'data-action': 'togglePeriod',
-                    tabindex: '-1',
-                    'title': this._options.tooltips.togglePeriod
-                })));
-                bottomRow.append($('<td>').addClass('separator'));
-            }
-
-            return $('<div>').addClass('timepicker-picker').append($('<table>').addClass('table-condensed').append([topRow, middleRow, bottomRow]));
-        };
-
-        TempusDominusBootstrap4.prototype._getTimePickerTemplate = function _getTimePickerTemplate() {
-            var hoursView = $('<div>').addClass('timepicker-hours').append($('<table>').addClass('table-condensed')),
-                minutesView = $('<div>').addClass('timepicker-minutes').append($('<table>').addClass('table-condensed')),
-                secondsView = $('<div>').addClass('timepicker-seconds').append($('<table>').addClass('table-condensed')),
-                ret = [this._getTimePickerMainTemplate()];
-
-            if (this._isEnabled('h')) {
-                ret.push(hoursView);
-            }
-            if (this._isEnabled('m')) {
-                ret.push(minutesView);
-            }
-            if (this._isEnabled('s')) {
-                ret.push(secondsView);
-            }
-
-            return ret;
-        };
-
-        TempusDominusBootstrap4.prototype._getToolbar = function _getToolbar() {
-            var row = [];
-            if (this._options.buttons.showToday) {
-                row.push($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'data-action': 'today',
-                    'title': this._options.tooltips.today
-                }).append($('<span>').addClass(this._options.icons.today))));
-            }
-            if (!this._options.sideBySide && this._hasDate() && this._hasTime()) {
-                var title = void 0,
-                    icon = void 0;
-                if (this._options.viewMode === 'times') {
-                    title = this._options.tooltips.selectDate;
-                    icon = this._options.icons.date;
-                } else {
-                    title = this._options.tooltips.selectTime;
-                    icon = this._options.icons.time;
-                }
-                row.push($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'data-action': 'togglePicker',
-                    'title': title
-                }).append($('<span>').addClass(icon))));
-            }
-            if (this._options.buttons.showClear) {
-                row.push($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'data-action': 'clear',
-                    'title': this._options.tooltips.clear
-                }).append($('<span>').addClass(this._options.icons.clear))));
-            }
-            if (this._options.buttons.showClose) {
-                row.push($('<td>').append($('<a>').attr({
-                    href: '#',
-                    tabindex: '-1',
-                    'data-action': 'close',
-                    'title': this._options.tooltips.close
-                }).append($('<span>').addClass(this._options.icons.close))));
-            }
-            return row.length === 0 ? '' : $('<table>').addClass('table-condensed').append($('<tbody>').append($('<tr>').append(row)));
-        };
-
-        TempusDominusBootstrap4.prototype._getTemplate = function _getTemplate() {
-            var template = $('<div>').addClass('bootstrap-datetimepicker-widget dropdown-menu'),
-                dateView = $('<div>').addClass('datepicker').append(this._getDatePickerTemplate()),
-                timeView = $('<div>').addClass('timepicker').append(this._getTimePickerTemplate()),
-                content = $('<ul>').addClass('list-unstyled'),
-                toolbar = $('<li>').addClass('picker-switch' + (this._options.collapse ? ' accordion-toggle' : '')).append(this._getToolbar());
-
-            if (this._options.inline) {
-                template.removeClass('dropdown-menu');
-            }
-
-            if (this.use24Hours) {
-                template.addClass('usetwentyfour');
-            }
-            if (this._isEnabled('s') && !this.use24Hours) {
-                template.addClass('wider');
-            }
-
-            if (this._options.sideBySide && this._hasDate() && this._hasTime()) {
-                template.addClass('timepicker-sbs');
-                if (this._options.toolbarPlacement === 'top') {
-                    template.append(toolbar);
-                }
-                template.append($('<div>').addClass('row').append(dateView.addClass('col-md-6')).append(timeView.addClass('col-md-6')));
-                if (this._options.toolbarPlacement === 'bottom' || this._options.toolbarPlacement === 'default') {
-                    template.append(toolbar);
-                }
-                return template;
-            }
-
-            if (this._options.toolbarPlacement === 'top') {
-                content.append(toolbar);
-            }
-            if (this._hasDate()) {
-                content.append($('<li>').addClass(this._options.collapse && this._hasTime() ? 'collapse' : '').addClass(this._options.collapse && this._hasTime() && this._options.viewMode === 'times' ? '' : 'show').append(dateView));
-            }
-            if (this._options.toolbarPlacement === 'default') {
-                content.append(toolbar);
-            }
-            if (this._hasTime()) {
-                content.append($('<li>').addClass(this._options.collapse && this._hasDate() ? 'collapse' : '').addClass(this._options.collapse && this._hasDate() && this._options.viewMode === 'times' ? 'show' : '').append(timeView));
-            }
-            if (this._options.toolbarPlacement === 'bottom') {
-                content.append(toolbar);
-            }
-            return template.append(content);
-        };
-
-        TempusDominusBootstrap4.prototype._place = function _place(e) {
-            var self = e && e.data && e.data.picker || this,
-                vertical = self._options.widgetPositioning.vertical,
-                horizontal = self._options.widgetPositioning.horizontal,
-                parent = void 0;
-            var position = (self.component && self.component.length ? self.component : self._element).position(),
-                offset = (self.component && self.component.length ? self.component : self._element).offset();
-            if (self._options.widgetParent) {
-                parent = self._options.widgetParent.append(self.widget);
-            } else if (self._element.is('input')) {
-                parent = self._element.after(self.widget).parent();
-            } else if (self._options.inline) {
-                parent = self._element.append(self.widget);
-                return;
-            } else {
-                parent = self._element;
-                self._element.children().first().after(self.widget);
-            }
-
-            // Top and bottom logic
-            if (vertical === 'auto') {
-                //noinspection JSValidateTypes
-                if (offset.top + self.widget.height() * 1.5 >= $(window).height() + $(window).scrollTop() && self.widget.height() + self._element.outerHeight() < offset.top) {
-                    vertical = 'top';
-                } else {
-                    vertical = 'bottom';
-                }
-            }
-
-            // Left and right logic
-            if (horizontal === 'auto') {
-                if (parent.width() < offset.left + self.widget.outerWidth() / 2 && offset.left + self.widget.outerWidth() > $(window).width()) {
-                    horizontal = 'right';
-                } else {
-                    horizontal = 'left';
-                }
-            }
-
-            if (vertical === 'top') {
-                self.widget.addClass('top').removeClass('bottom');
-            } else {
-                self.widget.addClass('bottom').removeClass('top');
-            }
-
-            if (horizontal === 'right') {
-                self.widget.addClass('float-right');
-            } else {
-                self.widget.removeClass('float-right');
-            }
-
-            // find the first parent element that has a relative css positioning
-            if (parent.css('position') !== 'relative') {
-                parent = parent.parents().filter(function () {
-                    return $(this).css('position') === 'relative';
-                }).first();
-            }
-
-            if (parent.length === 0) {
-                throw new Error('datetimepicker component should be placed within a relative positioned container');
-            }
-
-            self.widget.css({
-                top: vertical === 'top' ? 'auto' : position.top + self._element.outerHeight() + 'px',
-                bottom: vertical === 'top' ? parent.outerHeight() - (parent === self._element ? 0 : position.top) + 'px' : 'auto',
-                left: horizontal === 'left' ? (parent === self._element ? 0 : position.left) + 'px' : 'auto',
-                right: horizontal === 'left' ? 'auto' : parent.outerWidth() - self._element.outerWidth() - (parent === self._element ? 0 : position.left) + 'px'
-            });
-        };
-
-        TempusDominusBootstrap4.prototype._fillDow = function _fillDow() {
-            var row = $('<tr>'),
-                currentDate = this._viewDate.clone().startOf('w').startOf('d');
-
-            if (this._options.calendarWeeks === true) {
-                row.append($('<th>').addClass('cw').text('#'));
-            }
-
-            while (currentDate.isBefore(this._viewDate.clone().endOf('w'))) {
-                row.append($('<th>').addClass('dow').text(currentDate.format('dd')));
-                currentDate.add(1, 'd');
-            }
-            this.widget.find('.datepicker-days thead').append(row);
-        };
-
-        TempusDominusBootstrap4.prototype._fillMonths = function _fillMonths() {
-            var spans = [],
-                monthsShort = this._viewDate.clone().startOf('y').startOf('d');
-            while (monthsShort.isSame(this._viewDate, 'y')) {
-                spans.push($('<span>').attr('data-action', 'selectMonth').addClass('month').text(monthsShort.format('MMM')));
-                monthsShort.add(1, 'M');
-            }
-            this.widget.find('.datepicker-months td').empty().append(spans);
-        };
-
-        TempusDominusBootstrap4.prototype._updateMonths = function _updateMonths() {
-            var monthsView = this.widget.find('.datepicker-months'),
-                monthsViewHeader = monthsView.find('th'),
-                months = monthsView.find('tbody').find('span'),
-                self = this;
-
-            monthsViewHeader.eq(0).find('span').attr('title', this._options.tooltips.prevYear);
-            monthsViewHeader.eq(1).attr('title', this._options.tooltips.selectYear);
-            monthsViewHeader.eq(2).find('span').attr('title', this._options.tooltips.nextYear);
-
-            monthsView.find('.disabled').removeClass('disabled');
-
-            if (!this._isValid(this._viewDate.clone().subtract(1, 'y'), 'y')) {
-                monthsViewHeader.eq(0).addClass('disabled');
-            }
-
-            monthsViewHeader.eq(1).text(this._viewDate.year());
-
-            if (!this._isValid(this._viewDate.clone().add(1, 'y'), 'y')) {
-                monthsViewHeader.eq(2).addClass('disabled');
-            }
-
-            months.removeClass('active');
-            if (this._getLastPickedDate().isSame(this._viewDate, 'y') && !this.unset) {
-                months.eq(this._getLastPickedDate().month()).addClass('active');
-            }
-
-            months.each(function (index) {
-                if (!self._isValid(self._viewDate.clone().month(index), 'M')) {
-                    $(this).addClass('disabled');
-                }
-            });
-        };
-
-        TempusDominusBootstrap4.prototype._getStartEndYear = function _getStartEndYear(factor, year) {
-            var step = factor / 10,
-                startYear = Math.floor(year / factor) * factor,
-                endYear = startYear + step * 9,
-                focusValue = Math.floor(year / step) * step;
-            return [startYear, endYear, focusValue];
-        };
-
-        TempusDominusBootstrap4.prototype._updateYears = function _updateYears() {
-            var yearsView = this.widget.find('.datepicker-years'),
-                yearsViewHeader = yearsView.find('th'),
-                yearCaps = this._getStartEndYear(10, this._viewDate.year()),
-                startYear = this._viewDate.clone().year(yearCaps[0]),
-                endYear = this._viewDate.clone().year(yearCaps[1]);
-            var html = '';
-
-            yearsViewHeader.eq(0).find('span').attr('title', this._options.tooltips.prevDecade);
-            yearsViewHeader.eq(1).attr('title', this._options.tooltips.selectDecade);
-            yearsViewHeader.eq(2).find('span').attr('title', this._options.tooltips.nextDecade);
-
-            yearsView.find('.disabled').removeClass('disabled');
-
-            if (this._options.minDate && this._options.minDate.isAfter(startYear, 'y')) {
-                yearsViewHeader.eq(0).addClass('disabled');
-            }
-
-            yearsViewHeader.eq(1).text(startYear.year() + '-' + endYear.year());
-
-            if (this._options.maxDate && this._options.maxDate.isBefore(endYear, 'y')) {
-                yearsViewHeader.eq(2).addClass('disabled');
-            }
-
-            html += '<span data-action="selectYear" class="year old' + (!this._isValid(startYear, 'y') ? ' disabled' : '') + '">' + (startYear.year() - 1) + '</span>';
-            while (!startYear.isAfter(endYear, 'y')) {
-                html += '<span data-action="selectYear" class="year' + (startYear.isSame(this._getLastPickedDate(), 'y') && !this.unset ? ' active' : '') + (!this._isValid(startYear, 'y') ? ' disabled' : '') + '">' + startYear.year() + '</span>';
-                startYear.add(1, 'y');
-            }
-            html += '<span data-action="selectYear" class="year old' + (!this._isValid(startYear, 'y') ? ' disabled' : '') + '">' + startYear.year() + '</span>';
-
-            yearsView.find('td').html(html);
-        };
-
-        TempusDominusBootstrap4.prototype._updateDecades = function _updateDecades() {
-            var decadesView = this.widget.find('.datepicker-decades'),
-                decadesViewHeader = decadesView.find('th'),
-                yearCaps = this._getStartEndYear(100, this._viewDate.year()),
-                startDecade = this._viewDate.clone().year(yearCaps[0]),
-                endDecade = this._viewDate.clone().year(yearCaps[1]);
-            var minDateDecade = false,
-                maxDateDecade = false,
-                endDecadeYear = void 0,
-                html = '';
-
-            decadesViewHeader.eq(0).find('span').attr('title', this._options.tooltips.prevCentury);
-            decadesViewHeader.eq(2).find('span').attr('title', this._options.tooltips.nextCentury);
-
-            decadesView.find('.disabled').removeClass('disabled');
-
-            if (startDecade.year() === 0 || this._options.minDate && this._options.minDate.isAfter(startDecade, 'y')) {
-                decadesViewHeader.eq(0).addClass('disabled');
-            }
-
-            decadesViewHeader.eq(1).text(startDecade.year() + '-' + endDecade.year());
-
-            if (this._options.maxDate && this._options.maxDate.isBefore(endDecade, 'y')) {
-                decadesViewHeader.eq(2).addClass('disabled');
-            }
-
-            if (startDecade.year() - 10 < 0) {
-                html += '<span>&nbsp;</span>';
-            } else {
-                html += '<span data-action="selectDecade" class="decade old" data-selection="' + (startDecade.year() + 6) + '">' + (startDecade.year() - 10) + '</span>';
-            }
-
-            while (!startDecade.isAfter(endDecade, 'y')) {
-                endDecadeYear = startDecade.year() + 11;
-                minDateDecade = this._options.minDate && this._options.minDate.isAfter(startDecade, 'y') && this._options.minDate.year() <= endDecadeYear;
-                maxDateDecade = this._options.maxDate && this._options.maxDate.isAfter(startDecade, 'y') && this._options.maxDate.year() <= endDecadeYear;
-                html += '<span data-action="selectDecade" class="decade' + (this._getLastPickedDate().isAfter(startDecade) && this._getLastPickedDate().year() <= endDecadeYear ? ' active' : '') + (!this._isValid(startDecade, 'y') && !minDateDecade && !maxDateDecade ? ' disabled' : '') + '" data-selection="' + (startDecade.year() + 6) + '">' + startDecade.year() + '</span>';
-                startDecade.add(10, 'y');
-            }
-            html += '<span data-action="selectDecade" class="decade old" data-selection="' + (startDecade.year() + 6) + '">' + startDecade.year() + '</span>';
-
-            decadesView.find('td').html(html);
-        };
-
-        TempusDominusBootstrap4.prototype._fillDate = function _fillDate() {
-            var daysView = this.widget.find('.datepicker-days'),
-                daysViewHeader = daysView.find('th'),
-                html = [];
-            var currentDate = void 0,
-                row = void 0,
-                clsName = void 0,
-                i = void 0;
-
-            if (!this._hasDate()) {
-                return;
-            }
-
-            daysViewHeader.eq(0).find('span').attr('title', this._options.tooltips.prevMonth);
-            daysViewHeader.eq(1).attr('title', this._options.tooltips.selectMonth);
-            daysViewHeader.eq(2).find('span').attr('title', this._options.tooltips.nextMonth);
-
-            daysView.find('.disabled').removeClass('disabled');
-            daysViewHeader.eq(1).text(this._viewDate.format(this._options.dayViewHeaderFormat));
-
-            if (!this._isValid(this._viewDate.clone().subtract(1, 'M'), 'M')) {
-                daysViewHeader.eq(0).addClass('disabled');
-            }
-            if (!this._isValid(this._viewDate.clone().add(1, 'M'), 'M')) {
-                daysViewHeader.eq(2).addClass('disabled');
-            }
-
-            currentDate = this._viewDate.clone().startOf('M').startOf('w').startOf('d');
-
-            for (i = 0; i < 42; i++) {
-                //always display 42 days (should show 6 weeks)
-                if (currentDate.weekday() === 0) {
-                    row = $('<tr>');
-                    if (this._options.calendarWeeks) {
-                        row.append('<td class="cw">' + currentDate.week() + '</td>');
-                    }
-                    html.push(row);
-                }
-                clsName = '';
-                if (currentDate.isBefore(this._viewDate, 'M')) {
-                    clsName += ' old';
-                }
-                if (currentDate.isAfter(this._viewDate, 'M')) {
-                    clsName += ' new';
-                }
-                if (this._options.allowMultidate) {
-                    var index = this._datesFormatted.indexOf(currentDate.format('YYYY-MM-DD'));
-                    if (index !== -1) {
-                        if (currentDate.isSame(this._datesFormatted[index], 'd') && !this.unset) {
-                            clsName += ' active';
-                        }
-                    }
-                } else {
-                    if (currentDate.isSame(this._getLastPickedDate(), 'd') && !this.unset) {
-                        clsName += ' active';
-                    }
-                }
-                if (!this._isValid(currentDate, 'd')) {
-                    clsName += ' disabled';
-                }
-                if (currentDate.isSame(this.getMoment(), 'd')) {
-                    clsName += ' today';
-                }
-                if (currentDate.day() === 0 || currentDate.day() === 6) {
-                    clsName += ' weekend';
-                }
-                row.append('<td data-action="selectDay" data-day="' + currentDate.format('L') + '" class="day' + clsName + '">' + currentDate.date() + '</td>');
-                currentDate.add(1, 'd');
-            }
-
-            daysView.find('tbody').empty().append(html);
-
-            this._updateMonths();
-
-            this._updateYears();
-
-            this._updateDecades();
-        };
-
-        TempusDominusBootstrap4.prototype._fillHours = function _fillHours() {
-            var table = this.widget.find('.timepicker-hours table'),
-                currentHour = this._viewDate.clone().startOf('d'),
-                html = [];
-            var row = $('<tr>');
-
-            if (this._viewDate.hour() > 11 && !this.use24Hours) {
-                currentHour.hour(12);
-            }
-            while (currentHour.isSame(this._viewDate, 'd') && (this.use24Hours || this._viewDate.hour() < 12 && currentHour.hour() < 12 || this._viewDate.hour() > 11)) {
-                if (currentHour.hour() % 4 === 0) {
-                    row = $('<tr>');
-                    html.push(row);
-                }
-                row.append('<td data-action="selectHour" class="hour' + (!this._isValid(currentHour, 'h') ? ' disabled' : '') + '">' + currentHour.format(this.use24Hours ? 'HH' : 'hh') + '</td>');
-                currentHour.add(1, 'h');
-            }
-            table.empty().append(html);
-        };
-
-        TempusDominusBootstrap4.prototype._fillMinutes = function _fillMinutes() {
-            var table = this.widget.find('.timepicker-minutes table'),
-                currentMinute = this._viewDate.clone().startOf('h'),
-                html = [],
-                step = this._options.stepping === 1 ? 5 : this._options.stepping;
-            var row = $('<tr>');
-
-            while (this._viewDate.isSame(currentMinute, 'h')) {
-                if (currentMinute.minute() % (step * 4) === 0) {
-                    row = $('<tr>');
-                    html.push(row);
-                }
-                row.append('<td data-action="selectMinute" class="minute' + (!this._isValid(currentMinute, 'm') ? ' disabled' : '') + '">' + currentMinute.format('mm') + '</td>');
-                currentMinute.add(step, 'm');
-            }
-            table.empty().append(html);
-        };
-
-        TempusDominusBootstrap4.prototype._fillSeconds = function _fillSeconds() {
-            var table = this.widget.find('.timepicker-seconds table'),
-                currentSecond = this._viewDate.clone().startOf('m'),
-                html = [];
-            var row = $('<tr>');
-
-            while (this._viewDate.isSame(currentSecond, 'm')) {
-                if (currentSecond.second() % 20 === 0) {
-                    row = $('<tr>');
-                    html.push(row);
-                }
-                row.append('<td data-action="selectSecond" class="second' + (!this._isValid(currentSecond, 's') ? ' disabled' : '') + '">' + currentSecond.format('ss') + '</td>');
-                currentSecond.add(5, 's');
-            }
-
-            table.empty().append(html);
-        };
-
-        TempusDominusBootstrap4.prototype._fillTime = function _fillTime() {
-            var toggle = void 0,
-                newDate = void 0;
-            var timeComponents = this.widget.find('.timepicker span[data-time-component]');
-
-            if (!this.use24Hours) {
-                toggle = this.widget.find('.timepicker [data-action=togglePeriod]');
-                newDate = this._getLastPickedDate().clone().add(this._getLastPickedDate().hours() >= 12 ? -12 : 12, 'h');
-
-                toggle.text(this._getLastPickedDate().format('A'));
-
-                if (this._isValid(newDate, 'h')) {
-                    toggle.removeClass('disabled');
-                } else {
-                    toggle.addClass('disabled');
-                }
-            }
-            timeComponents.filter('[data-time-component=hours]').text(this._getLastPickedDate().format('' + (this.use24Hours ? 'HH' : 'hh')));
-            timeComponents.filter('[data-time-component=minutes]').text(this._getLastPickedDate().format('mm'));
-            timeComponents.filter('[data-time-component=seconds]').text(this._getLastPickedDate().format('ss'));
-
-            this._fillHours();
-            this._fillMinutes();
-            this._fillSeconds();
-        };
-
-        TempusDominusBootstrap4.prototype._doAction = function _doAction(e, action) {
-            var lastPicked = this._getLastPickedDate();
-            if ($(e.currentTarget).is('.disabled')) {
-                return false;
-            }
-            action = action || $(e.currentTarget).data('action');
-            switch (action) {
-                case 'next':
-                    {
-                        var navFnc = DateTimePicker.DatePickerModes[this.currentViewMode].NAV_FUNCTION;
-                        this._viewDate.add(DateTimePicker.DatePickerModes[this.currentViewMode].NAV_STEP, navFnc);
-                        this._fillDate();
-                        this._viewUpdate(navFnc);
-                        break;
-                    }
-                case 'previous':
-                    {
-                        var _navFnc = DateTimePicker.DatePickerModes[this.currentViewMode].NAV_FUNCTION;
-                        this._viewDate.subtract(DateTimePicker.DatePickerModes[this.currentViewMode].NAV_STEP, _navFnc);
-                        this._fillDate();
-                        this._viewUpdate(_navFnc);
-                        break;
-                    }
-                case 'pickerSwitch':
-                    this._showMode(1);
-                    break;
-                case 'selectMonth':
-                    {
-                        var month = $(e.target).closest('tbody').find('span').index($(e.target));
-                        this._viewDate.month(month);
-                        if (this.currentViewMode === this.MinViewModeNumber) {
-                            this._setValue(lastPicked.clone().year(this._viewDate.year()).month(this._viewDate.month()), this._getLastPickedDateIndex());
-                            if (!this._options.inline) {
-                                this.hide();
-                            }
-                        } else {
-                            this._showMode(-1);
-                            this._fillDate();
-                        }
-                        this._viewUpdate('M');
-                        break;
-                    }
-                case 'selectYear':
-                    {
-                        var year = parseInt($(e.target).text(), 10) || 0;
-                        this._viewDate.year(year);
-                        if (this.currentViewMode === this.MinViewModeNumber) {
-                            this._setValue(lastPicked.clone().year(this._viewDate.year()), this._getLastPickedDateIndex());
-                            if (!this._options.inline) {
-                                this.hide();
-                            }
-                        } else {
-                            this._showMode(-1);
-                            this._fillDate();
-                        }
-                        this._viewUpdate('YYYY');
-                        break;
-                    }
-                case 'selectDecade':
-                    {
-                        var _year = parseInt($(e.target).data('selection'), 10) || 0;
-                        this._viewDate.year(_year);
-                        if (this.currentViewMode === this.MinViewModeNumber) {
-                            this._setValue(lastPicked.clone().year(this._viewDate.year()), this._getLastPickedDateIndex());
-                            if (!this._options.inline) {
-                                this.hide();
-                            }
-                        } else {
-                            this._showMode(-1);
-                            this._fillDate();
-                        }
-                        this._viewUpdate('YYYY');
-                        break;
-                    }
-                case 'selectDay':
-                    {
-                        var day = this._viewDate.clone();
-                        if ($(e.target).is('.old')) {
-                            day.subtract(1, 'M');
-                        }
-                        if ($(e.target).is('.new')) {
-                            day.add(1, 'M');
-                        }
-
-                        var selectDate = day.date(parseInt($(e.target).text(), 10)),
-                            index = 0;
-                        if (this._options.allowMultidate) {
-                            index = this._datesFormatted.indexOf(selectDate.format('YYYY-MM-DD'));
-                            if (index !== -1) {
-                                this._setValue(null, index); //deselect multidate
-                            } else {
-                                this._setValue(selectDate, this._getLastPickedDateIndex() + 1);
-                            }
-                        } else {
-                            this._setValue(selectDate, this._getLastPickedDateIndex());
-                        }
-
-                        if (!this._hasTime() && !this._options.keepOpen && !this._options.inline && !this._options.allowMultidate) {
-                            this.hide();
-                        }
-                        break;
-                    }
-                case 'incrementHours':
-                    {
-                        var newDate = lastPicked.clone().add(1, 'h');
-                        if (this._isValid(newDate, 'h')) {
-                            this._setValue(newDate, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'incrementMinutes':
-                    {
-                        var _newDate = lastPicked.clone().add(this._options.stepping, 'm');
-                        if (this._isValid(_newDate, 'm')) {
-                            this._setValue(_newDate, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'incrementSeconds':
-                    {
-                        var _newDate2 = lastPicked.clone().add(1, 's');
-                        if (this._isValid(_newDate2, 's')) {
-                            this._setValue(_newDate2, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'decrementHours':
-                    {
-                        var _newDate3 = lastPicked.clone().subtract(1, 'h');
-                        if (this._isValid(_newDate3, 'h')) {
-                            this._setValue(_newDate3, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'decrementMinutes':
-                    {
-                        var _newDate4 = lastPicked.clone().subtract(this._options.stepping, 'm');
-                        if (this._isValid(_newDate4, 'm')) {
-                            this._setValue(_newDate4, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'decrementSeconds':
-                    {
-                        var _newDate5 = lastPicked.clone().subtract(1, 's');
-                        if (this._isValid(_newDate5, 's')) {
-                            this._setValue(_newDate5, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-                case 'togglePeriod':
-                    {
-                        this._setValue(lastPicked.clone().add(lastPicked.hours() >= 12 ? -12 : 12, 'h'), this._getLastPickedDateIndex());
-                        break;
-                    }
-                case 'togglePicker':
-                    {
-                        var $this = $(e.target),
-                            $link = $this.closest('a'),
-                            $parent = $this.closest('ul'),
-                            expanded = $parent.find('.show'),
-                            closed = $parent.find('.collapse:not(.show)'),
-                            $span = $this.is('span') ? $this : $this.find('span');
-                        var collapseData = void 0;
-
-                        if (expanded && expanded.length) {
-                            collapseData = expanded.data('collapse');
-                            if (collapseData && collapseData.transitioning) {
-                                return true;
-                            }
-                            if (expanded.collapse) {
-                                // if collapse plugin is available through bootstrap.js then use it
-                                expanded.collapse('hide');
-                                closed.collapse('show');
-                            } else {
-                                // otherwise just toggle in class on the two views
-                                expanded.removeClass('show');
-                                closed.addClass('show');
-                            }
-                            $span.toggleClass(this._options.icons.time + ' ' + this._options.icons.date);
-
-                            if ($span.hasClass(this._options.icons.date)) {
-                                $link.attr('title', this._options.tooltips.selectDate);
-                            } else {
-                                $link.attr('title', this._options.tooltips.selectTime);
-                            }
-                        }
-                    }
-                    break;
-                case 'showPicker':
-                    this.widget.find('.timepicker > div:not(.timepicker-picker)').hide();
-                    this.widget.find('.timepicker .timepicker-picker').show();
-                    break;
-                case 'showHours':
-                    this.widget.find('.timepicker .timepicker-picker').hide();
-                    this.widget.find('.timepicker .timepicker-hours').show();
-                    break;
-                case 'showMinutes':
-                    this.widget.find('.timepicker .timepicker-picker').hide();
-                    this.widget.find('.timepicker .timepicker-minutes').show();
-                    break;
-                case 'showSeconds':
-                    this.widget.find('.timepicker .timepicker-picker').hide();
-                    this.widget.find('.timepicker .timepicker-seconds').show();
-                    break;
-                case 'selectHour':
-                    {
-                        var hour = parseInt($(e.target).text(), 10);
-
-                        if (!this.use24Hours) {
-                            if (lastPicked.hours() >= 12) {
-                                if (hour !== 12) {
-                                    hour += 12;
-                                }
-                            } else {
-                                if (hour === 12) {
-                                    hour = 0;
-                                }
-                            }
-                        }
-                        this._setValue(lastPicked.clone().hours(hour), this._getLastPickedDateIndex());
-                        if (!this._isEnabled('a') && !this._isEnabled('m') && !this._options.keepOpen && !this._options.inline) {
-                            this.hide();
-                        } else {
-                            this._doAction(e, 'showPicker');
-                        }
-                        break;
-                    }
-                case 'selectMinute':
-                    this._setValue(lastPicked.clone().minutes(parseInt($(e.target).text(), 10)), this._getLastPickedDateIndex());
-                    if (!this._isEnabled('a') && !this._isEnabled('s') && !this._options.keepOpen && !this._options.inline) {
-                        this.hide();
-                    } else {
-                        this._doAction(e, 'showPicker');
-                    }
-                    break;
-                case 'selectSecond':
-                    this._setValue(lastPicked.clone().seconds(parseInt($(e.target).text(), 10)), this._getLastPickedDateIndex());
-                    if (!this._isEnabled('a') && !this._options.keepOpen && !this._options.inline) {
-                        this.hide();
-                    } else {
-                        this._doAction(e, 'showPicker');
-                    }
-                    break;
-                case 'clear':
-                    this.clear();
-                    break;
-                case 'close':
-                    this.hide();
-                    break;
-                case 'today':
-                    {
-                        var todaysDate = this.getMoment();
-                        if (this._isValid(todaysDate, 'd')) {
-                            this._setValue(todaysDate, this._getLastPickedDateIndex());
-                        }
-                        break;
-                    }
-            }
-            return false;
-        };
-
-        //public
-
-
-        TempusDominusBootstrap4.prototype.hide = function hide() {
-            var transitioning = false;
-            if (!this.widget) {
-                return;
-            }
-            // Ignore event if in the middle of a picker transition
-            this.widget.find('.collapse').each(function () {
-                var collapseData = $(this).data('collapse');
-                if (collapseData && collapseData.transitioning) {
-                    transitioning = true;
-                    return false;
-                }
-                return true;
-            });
-            if (transitioning) {
-                return;
-            }
-            if (this.component && this.component.hasClass('btn')) {
-                this.component.toggleClass('active');
-            }
-            this.widget.hide();
-
-            $(window).off('resize', this._place());
-            this.widget.off('click', '[data-action]');
-            this.widget.off('mousedown', false);
-
-            this.widget.remove();
-            this.widget = false;
-
-            this._notifyEvent({
-                type: DateTimePicker.Event.HIDE,
-                date: this._getLastPickedDate().clone()
-            });
-
-            if (this.input !== undefined) {
-                this.input.blur();
-            }
-
-            this._viewDate = this._getLastPickedDate().clone();
-        };
-
-        TempusDominusBootstrap4.prototype.show = function show() {
-            var currentMoment = void 0;
-            var useCurrentGranularity = {
-                'year': function year(m) {
-                    return m.month(0).date(1).hours(0).seconds(0).minutes(0);
-                },
-                'month': function month(m) {
-                    return m.date(1).hours(0).seconds(0).minutes(0);
-                },
-                'day': function day(m) {
-                    return m.hours(0).seconds(0).minutes(0);
-                },
-                'hour': function hour(m) {
-                    return m.seconds(0).minutes(0);
-                },
-                'minute': function minute(m) {
-                    return m.seconds(0);
-                }
-            };
-
-            if (this.input !== undefined) {
-                if (this.input.prop('disabled') || !this._options.ignoreReadonly && this.input.prop('readonly') || this.widget) {
-                    return;
-                }
-                if (this.input.val() !== undefined && this.input.val().trim().length !== 0) {
-                    this._setValue(this._parseInputDate(this.input.val().trim()), 0);
-                } else if (this.unset && this._options.useCurrent) {
-                    currentMoment = this.getMoment();
-                    if (typeof this._options.useCurrent === 'string') {
-                        currentMoment = useCurrentGranularity[this._options.useCurrent](currentMoment);
-                    }
-                    this._setValue(currentMoment, 0);
-                }
-            } else if (this.unset && this._options.useCurrent) {
-                currentMoment = this.getMoment();
-                if (typeof this._options.useCurrent === 'string') {
-                    currentMoment = useCurrentGranularity[this._options.useCurrent](currentMoment);
-                }
-                this._setValue(currentMoment, 0);
-            }
-
-            this.widget = this._getTemplate();
-
-            this._fillDow();
-            this._fillMonths();
-
-            this.widget.find('.timepicker-hours').hide();
-            this.widget.find('.timepicker-minutes').hide();
-            this.widget.find('.timepicker-seconds').hide();
-
-            this._update();
-            this._showMode();
-
-            $(window).on('resize', { picker: this }, this._place);
-            this.widget.on('click', '[data-action]', $.proxy(this._doAction, this)); // this handles clicks on the widget
-            this.widget.on('mousedown', false);
-
-            if (this.component && this.component.hasClass('btn')) {
-                this.component.toggleClass('active');
-            }
-            this._place();
-            this.widget.show();
-            if (this.input !== undefined && this._options.focusOnShow && !this.input.is(':focus')) {
-                this.input.focus();
-            }
-
-            this._notifyEvent({
-                type: DateTimePicker.Event.SHOW
-            });
-        };
-
-        TempusDominusBootstrap4.prototype.destroy = function destroy() {
-            this.hide();
-            //todo doc off?
-            this._element.removeData(DateTimePicker.DATA_KEY);
-            this._element.removeData('date');
-        };
-
-        TempusDominusBootstrap4.prototype.disable = function disable() {
-            this.hide();
-            if (this.component && this.component.hasClass('btn')) {
-                this.component.addClass('disabled');
-            }
-            if (this.input !== undefined) {
-                this.input.prop('disabled', true); //todo disable this/comp if input is null
-            }
-        };
-
-        TempusDominusBootstrap4.prototype.enable = function enable() {
-            if (this.component && this.component.hasClass('btn')) {
-                this.component.removeClass('disabled');
-            }
-            if (this.input !== undefined) {
-                this.input.prop('disabled', false); //todo enable comp/this if input is null
-            }
-        };
-
-        TempusDominusBootstrap4.prototype.toolbarPlacement = function toolbarPlacement(_toolbarPlacement) {
-            if (arguments.length === 0) {
-                return this._options.toolbarPlacement;
-            }
-
-            if (typeof _toolbarPlacement !== 'string') {
-                throw new TypeError('toolbarPlacement() expects a string parameter');
-            }
-            if (toolbarPlacements.indexOf(_toolbarPlacement) === -1) {
-                throw new TypeError('toolbarPlacement() parameter must be one of (' + toolbarPlacements.join(', ') + ') value');
-            }
-            this._options.toolbarPlacement = _toolbarPlacement;
-
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        TempusDominusBootstrap4.prototype.widgetPositioning = function widgetPositioning(_widgetPositioning) {
-            if (arguments.length === 0) {
-                return $.extend({}, this._options.widgetPositioning);
-            }
-
-            if ({}.toString.call(_widgetPositioning) !== '[object Object]') {
-                throw new TypeError('widgetPositioning() expects an object variable');
-            }
-            if (_widgetPositioning.horizontal) {
-                if (typeof _widgetPositioning.horizontal !== 'string') {
-                    throw new TypeError('widgetPositioning() horizontal variable must be a string');
-                }
-                _widgetPositioning.horizontal = _widgetPositioning.horizontal.toLowerCase();
-                if (horizontalModes.indexOf(_widgetPositioning.horizontal) === -1) {
-                    throw new TypeError('widgetPositioning() expects horizontal parameter to be one of (' + horizontalModes.join(', ') + ')');
-                }
-                this._options.widgetPositioning.horizontal = _widgetPositioning.horizontal;
-            }
-            if (_widgetPositioning.vertical) {
-                if (typeof _widgetPositioning.vertical !== 'string') {
-                    throw new TypeError('widgetPositioning() vertical variable must be a string');
-                }
-                _widgetPositioning.vertical = _widgetPositioning.vertical.toLowerCase();
-                if (verticalModes.indexOf(_widgetPositioning.vertical) === -1) {
-                    throw new TypeError('widgetPositioning() expects vertical parameter to be one of (' + verticalModes.join(', ') + ')');
-                }
-                this._options.widgetPositioning.vertical = _widgetPositioning.vertical;
-            }
-            this._update();
-        };
-
-        TempusDominusBootstrap4.prototype.widgetParent = function widgetParent(_widgetParent) {
-            if (arguments.length === 0) {
-                return this._options.widgetParent;
-            }
-
-            if (typeof _widgetParent === 'string') {
-                _widgetParent = $(_widgetParent);
-            }
-
-            if (_widgetParent !== null && typeof _widgetParent !== 'string' && !(_widgetParent instanceof $)) {
-                throw new TypeError('widgetParent() expects a string or a jQuery object parameter');
-            }
-
-            this._options.widgetParent = _widgetParent;
-            if (this.widget) {
-                this.hide();
-                this.show();
-            }
-        };
-
-        //static
-
-
-        TempusDominusBootstrap4._jQueryHandleThis = function _jQueryHandleThis(me, option, argument) {
-            var data = $(me).data(DateTimePicker.DATA_KEY);
-            if ((typeof option === 'undefined' ? 'undefined' : _typeof(option)) === 'object') {
-                $.extend({}, DateTimePicker.Default, option);
-            }
-
-            if (!data) {
-                data = new TempusDominusBootstrap4($(me), option);
-                $(me).data(DateTimePicker.DATA_KEY, data);
-            }
-
-            if (typeof option === 'string') {
-                if (data[option] === undefined) {
-                    throw new Error('No method named "' + option + '"');
-                }
-                if (argument === undefined) {
-                    return data[option]();
-                } else {
-                    return data[option](argument);
-                }
-            }
-        };
-
-        TempusDominusBootstrap4._jQueryInterface = function _jQueryInterface(option, argument) {
-            if (this.length === 1) {
-                return TempusDominusBootstrap4._jQueryHandleThis(this[0], option, argument);
-            }
-            return this.each(function () {
-                TempusDominusBootstrap4._jQueryHandleThis(this, option, argument);
-            });
-        };
-
-        return TempusDominusBootstrap4;
-    }(DateTimePicker);
-
-    /**
-    * ------------------------------------------------------------------------
-    * jQuery
-    * ------------------------------------------------------------------------
-    */
-
-
-    $(document).on(DateTimePicker.Event.CLICK_DATA_API, DateTimePicker.Selector.DATA_TOGGLE, function () {
-        var $target = getSelectorFromElement($(this));
-        if ($target.length === 0) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, 'toggle');
-    }).on(DateTimePicker.Event.CHANGE, '.' + DateTimePicker.ClassName.INPUT, function (event) {
-        var $target = getSelectorFromElement($(this));
-        if ($target.length === 0) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, '_change', event);
-    }).on(DateTimePicker.Event.BLUR, '.' + DateTimePicker.ClassName.INPUT, function (event) {
-        var $target = getSelectorFromElement($(this)),
-            config = $target.data(DateTimePicker.DATA_KEY);
-        if ($target.length === 0) {
-            return;
-        }
-        if (config._options.debug || window.debug) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, 'hide', event);
-    }).on(DateTimePicker.Event.KEYDOWN, '.' + DateTimePicker.ClassName.INPUT, function (event) {
-        var $target = getSelectorFromElement($(this));
-        if ($target.length === 0) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, '_keydown', event);
-    }).on(DateTimePicker.Event.KEYUP, '.' + DateTimePicker.ClassName.INPUT, function (event) {
-        var $target = getSelectorFromElement($(this));
-        if ($target.length === 0) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, '_keyup', event);
-    }).on(DateTimePicker.Event.FOCUS, '.' + DateTimePicker.ClassName.INPUT, function (event) {
-        var $target = getSelectorFromElement($(this)),
-            config = $target.data(DateTimePicker.DATA_KEY);
-        if ($target.length === 0) {
-            return;
-        }
-        if (!config._options.allowInputToggle) {
-            return;
-        }
-        TempusDominusBootstrap4._jQueryInterface.call($target, 'show', event);
-    });
-
-    $.fn[DateTimePicker.NAME] = TempusDominusBootstrap4._jQueryInterface;
-    $.fn[DateTimePicker.NAME].Constructor = TempusDominusBootstrap4;
-    $.fn[DateTimePicker.NAME].noConflict = function () {
-        $.fn[DateTimePicker.NAME] = JQUERY_NO_CONFLICT;
-        return TempusDominusBootstrap4._jQueryInterface;
-    };
-
-    return TempusDominusBootstrap4;
-}(jQuery);
-
-}();
-
-
-/***/ }),
-
 /***/ "./node_modules/webpack/buildin/global.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/global.js ***!
@@ -89540,14 +90175,16 @@ function (_Component) {
       return React.createElement(React.Fragment, null, React.createElement("div", {
         className: "container"
       }, this.state.posts.map(function (post) {
-        return React.createElement(SinglePostReview, {
+        return React.createElement(LazyLoad, {
+          key: post.id
+        }, React.createElement(SinglePostReview, {
           key: post.id,
           category_name: post.category_name,
           slug: post.slug,
           title: post.title,
           subtitle: post.subtitle,
           user_profile_picture_url: post.user_profile_picture_url,
-          username: post.username,
+          username: post.user_full_name,
           created_at: moment.utc(post.created_at).fromNow(),
           total_contribution: post.total_contribution,
           total_love: post.total_love,
@@ -89555,7 +90192,7 @@ function (_Component) {
           total_haha: post.total_haha,
           total_angry: post.total_angry,
           total_comments: post.total_comments
-        });
+        }));
       }), React.createElement("div", {
         className: "clearfix"
       }, React.createElement(Pagination, {
@@ -90161,10 +90798,12 @@ function (_Component) {
         className: "col-md-4"
       }, React.createElement("div", {
         className: "profile-img"
+      }, React.createElement(LazyLoad, {
+        once: true
       }, React.createElement("img", {
         src: this.state.user.profile_picture_url,
         className: "img-thumbnail"
-      }))), React.createElement("div", {
+      })))), React.createElement("div", {
         className: "col-md-8"
       }, React.createElement("div", {
         className: "user-details"
@@ -90175,17 +90814,14 @@ function (_Component) {
       }, "Blood group:", this.state.user.mobile_number ? React.createElement("strong", null, " ", this.state.user.blood_group) : React.createElement("strong", null, " None")), React.createElement("div", {
         className: "blood-group"
       }, "Contribution point:", this.state.user.contribution_point ? React.createElement("strong", null, " ", this.state.user.contribution_point) : React.createElement("strong", null, " 0"))))), React.createElement("div", {
-        className: "row p-5"
+        className: "row p-3"
       }, React.createElement("div", {
         className: "col-md-12"
       }, this.state.user.bio ? React.createElement("div", {
-        className: "mt-3",
         dangerouslySetInnerHTML: {
           __html: DOMPurify.sanitize(this.state.user.bio)
         }
-      }) : React.createElement("div", {
-        className: "mt-3"
-      }, "No bio"))), React.createElement("div", {
+      }) : React.createElement("p", null, "No bio"))), React.createElement("div", {
         className: "row"
       }, React.createElement("div", {
         className: "col-md-12"
@@ -90281,7 +90917,9 @@ function (_Component) {
         role: "tabpanel",
         "area-labelledby": "post-tab"
       }, this.state.posts.map(function (post) {
-        return React.createElement(SinglePostReview, {
+        return React.createElement(LazyLoad, {
+          key: post.id
+        }, React.createElement(SinglePostReview, {
           key: post.id,
           category_name: post.category_name,
           slug: post.slug,
@@ -90294,7 +90932,7 @@ function (_Component) {
           total_haha: post.total_haha,
           total_angry: post.total_angry,
           total_comments: post.total_comments
-        });
+        }));
       }), React.createElement("div", {
         className: "clearfix mb-3"
       }, React.createElement(Pagination, {
@@ -90318,6 +90956,765 @@ var rootElement = document.getElementById('profile');
 
 if (rootElement) {
   ReactDOM.render(React.createElement(ProfileComponent, {
+    userId: rootElement.getAttribute('data-user-id')
+  }), rootElement);
+}
+
+/***/ }),
+
+/***/ "./resources/js/components/frontend/SettingsComponent.js":
+/*!***************************************************************!*\
+  !*** ./resources/js/components/frontend/SettingsComponent.js ***!
+  \***************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+
+
+
+function _typeof(obj) {
+  if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
+    _typeof = function _typeof(obj) {
+      return _typeof2(obj);
+    };
+  } else {
+    _typeof = function _typeof(obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
+    };
+  }
+
+  return _typeof(obj);
+}
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  return Constructor;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (_typeof(call) === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+var SettingsComponent =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(SettingsComponent, _Component);
+
+  function SettingsComponent(props) {
+    var _this;
+
+    _classCallCheck(this, SettingsComponent);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(SettingsComponent).call(this, props));
+
+    _defineProperty(_assertThisInitialized(_this), "getUser", function () {
+      axios.get('/api/users/' + _this.state.userId + '/complete').then(function (response) {
+        _this.setState({
+          user: response.data
+        }, function () {
+          _this.setState({
+            bio: _this.state.user.bio || ''
+          });
+
+          var newProfileInfo = _this.state.profileInfo;
+          newProfileInfo.birth_date = _this.state.user.birth_date || '';
+          newProfileInfo.gender = _this.state.user.gender || '';
+          newProfileInfo.mobile_number = _this.state.user.mobile_number || '';
+          newProfileInfo.blood_group = _this.state.user.blood_group || '';
+
+          _this.setState({
+            profileInfo: newProfileInfo
+          });
+
+          var newUniversityProfileInfo = _this.state.universityProfileInfo;
+          newUniversityProfileInfo.student_id = _this.state.user.student_id || '';
+          newUniversityProfileInfo.department = _this.state.user.department || '';
+          newUniversityProfileInfo.ongoing_degree = _this.state.user.ongoing_degree || '';
+          newUniversityProfileInfo.session = _this.state.user.session || '';
+          newUniversityProfileInfo.alloted_hall = _this.state.user.alloted_hall || '';
+
+          _this.setState({
+            universityProfileInfo: newUniversityProfileInfo
+          });
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "changeProfilePicture", function (e) {
+      if (!e.target.files) return;
+
+      _this.setState({
+        profilePictureFile: e.target.files[0]
+      }, function () {
+        var _this2 = this;
+
+        var formData = new FormData();
+        formData.append('file', this.state.profilePictureFile, this.state.profilePictureFile.name);
+        this.setState({
+          uploadProgressDisplayValue: 'block'
+        });
+        axios.post('/api/user/upload', formData, {
+          onUploadProgress: function onUploadProgress(progressEvent) {
+            _this2.setState({
+              progressOfUploading: Math.round(progressEvent.loaded / progressEvent.total * 100.00)
+            });
+          }
+        }).then(function (response) {
+          _this2.setState({
+            progressOfUploading: 0,
+            uploadProgressDisplayValue: 'none'
+          });
+
+          _this2.getUser();
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
+      _this.setState({
+        bio: e.target.getContent()
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "changeBio", function () {
+      var formData = new FormData();
+      formData.append('bio', _this.state.bio);
+      axios.post('/api/user/bio', formData).then(function () {
+        _this.getUser();
+
+        swal.fire('Updated bio!', 'You bio has been successfully updated!', 'success');
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleAccountChange", function (e) {
+      var targetName = e.target.name;
+      var targetValue = e.target.value;
+      var newAccountInfo = _this.state.accountInfo;
+      if (targetName == 'old_password') newAccountInfo.old_password = targetValue;else if (targetName == 'new_password') newAccountInfo.new_password = targetValue;else if (targetName == 'password_confirmation') newAccountInfo.password_confirmation = targetValue;
+
+      _this.setState({
+        accountInfo: newAccountInfo
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleProfileBirthDateChange", function (e) {
+      var newProfileInfo = _this.state.profileInfo;
+      newProfileInfo.birth_date = e.format("YYYY-MM-DD");
+
+      _this.setState({
+        profileInfo: newProfileInfo
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleProfileChange", function (e) {
+      var targetName = e.target.name;
+      var targetValue = e.target.value;
+      var newProfileInfo = _this.state.profileInfo;
+      if (targetName == 'gender') newProfileInfo.gender = targetValue;else if (targetName == 'mobile_number') newProfileInfo.mobile_number = targetValue;else if (targetName == 'blood_group') newProfileInfo.blood_group = targetValue;
+
+      _this.setState({
+        profileInfo: newProfileInfo
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleUniversityProfileChange", function (e) {
+      var targetName = e.target.name;
+      var targetValue = e.target.value;
+      var newUniversityProfileInfo = _this.state.universityProfileInfo;
+      if (targetName == 'student_id') newUniversityProfileInfo.student_id = targetValue;else if (targetName == 'department') newUniversityProfileInfo.department = targetValue;else if (targetName == 'ongoing_degree') newUniversityProfileInfo.ongoing_degree = targetValue;else if (targetName == 'session') newUniversityProfileInfo.session = targetValue;else if (targetName == 'alloted_hall') newUniversityProfileInfo.alloted_hall = targetValue;
+
+      _this.setState({
+        universityProfileInfo: newUniversityProfileInfo
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "updateAccountInfo", function (e) {
+      e.preventDefault();
+      var formData = new FormData();
+      formData.append('old_password', _this.state.accountInfo.old_password);
+      formData.append('new_password', _this.state.accountInfo.new_password);
+      formData.append('password_confirmation', _this.state.accountInfo.password_confirmation);
+      axios.post('/api/user/change_password', formData).then(function () {
+        swal.fire('Updated password successfully!', 'You password has been successfully updated!', 'success');
+
+        _this.getUser();
+      })["catch"](function (err) {
+        swal.fire({
+          title: 'Update failed',
+          icon: 'error'
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "updateProfileInfo", function (e) {
+      e.preventDefault();
+      var formData = new FormData();
+      formData.append('birth_date', _this.state.profileInfo.birth_date);
+      formData.append('gender', _this.state.profileInfo.gender);
+      formData.append('mobile_number', _this.state.profileInfo.mobile_number);
+      formData.append('blood_group', _this.state.profileInfo.blood_group);
+      axios.post('/api/user/change_profile', formData).then(function () {
+        swal.fire('Updated profile information successfully!', 'You profile information has been successfully updated!', 'success');
+
+        _this.getUser();
+      })["catch"](function (err) {
+        swal.fire({
+          title: 'Update failed',
+          icon: 'error'
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "updateUniversityProfileInfo", function (e) {
+      e.preventDefault();
+      var formData = new FormData();
+      formData.append('student_id', _this.state.universityProfileInfo.student_id);
+      formData.append('department', _this.state.universityProfileInfo.department);
+      formData.append('ongoing_degree', _this.state.universityProfileInfo.ongoing_degree);
+      formData.append('session', _this.state.universityProfileInfo.session);
+      formData.append('alloted_hall', _this.state.universityProfileInfo.alloted_hall);
+      axios.post('/api/user/change_university_profile', formData).then(function () {
+        swal.fire('Updated university information successfully!', 'You university profile information has been successfully updated!', 'success');
+
+        _this.getUser();
+      })["catch"](function (err) {
+        swal.fire({
+          title: 'Update failed',
+          icon: 'error'
+        });
+      });
+    });
+
+    _this.state = {
+      editor_api_key: "5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft",
+      editor_config: {
+        path_absolute: "http://localhost:8000/",
+        plugins: ['autoresize', 'code', 'codesample', 'emoticons', 'hr', 'image', 'imagetools', 'insertdatetime', 'link', 'lists', 'media', 'preview', 'print', 'table'],
+        toolbar: 'undo redo print | styleselect | fontselect | fontsizeselect | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | link image media | bullist numlist outdent indent',
+        relative_urls: false,
+        file_picker_callback: function file_picker_callback(callback, value, meta) {
+          var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+          var y = window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight;
+          var type = 'image' === meta.filetype ? 'Images' : 'Files',
+              url = _this.state.editor_config.path_absolute + 'laravel-filemanager?editor=tinymce5&type=' + type;
+          tinymce.activeEditor.windowManager.openUrl({
+            url: url,
+            title: 'Filemanager',
+            width: x * 0.8,
+            height: y * 0.8,
+            onMessage: function onMessage(api, message) {
+              callback(message.content);
+            }
+          });
+        }
+      },
+      profilePictureFile: null,
+      progressOfUploading: 0,
+      uploadProgressDisplayValue: 'none',
+      user: {},
+      userId: props.userId,
+      bio: '',
+      accountInfo: {
+        old_password: '',
+        new_password: '',
+        password_confirmation: ''
+      },
+      profileInfo: {
+        birth_date: '',
+        gender: '',
+        mobile_number: '',
+        blood_group: ''
+      },
+      universityProfileInfo: {
+        student_id: '',
+        department: '',
+        ongoing_degree: '',
+        session: '',
+        alloted_hall: ''
+      }
+    };
+    return _this;
+  }
+
+  _createClass(SettingsComponent, [{
+    key: "componentDidMount",
+    value: function () {
+      var _componentDidMount = _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.getUser();
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function componentDidMount() {
+        return _componentDidMount.apply(this, arguments);
+      }
+
+      return componentDidMount;
+    }()
+  }, {
+    key: "render",
+    value: function render() {
+      return React.createElement(React.Fragment, null, React.createElement(LazyLoad, null, React.createElement("div", {
+        className: "profile"
+      }, React.createElement("div", {
+        className: "row"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("div", {
+        className: "profile-img"
+      }, React.createElement("img", {
+        src: this.state.user.profile_picture_url,
+        className: "img-thumbnail"
+      }), React.createElement("div", {
+        className: "file btn btn-lg btn-primary"
+      }, "Change Photo", React.createElement("input", {
+        type: "file",
+        name: "file",
+        accept: "image/*",
+        onChange: this.changeProfilePicture
+      })), React.createElement("div", {
+        className: "progress",
+        style: {
+          display: this.state.uploadProgressDisplayValue
+        }
+      }, React.createElement("div", {
+        className: "progress-bar progress-bar-striped progress-bar-animated bg-danger",
+        style: {
+          width: this.state.progressOfUploading + "%"
+        },
+        role: "progressbar",
+        "aria-valuenow": this.state.progressOfUploading,
+        "aria-valuemin": "0",
+        "aria-valuemax": "100"
+      })))), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("div", {
+        className: "user-details"
+      }, React.createElement("h2", null, this.state.user.name), React.createElement("h3", null, this.state.user.username), React.createElement("div", {
+        className: "email"
+      }, "Email: ", this.state.user.email)))), React.createElement("div", {
+        className: "row p-3"
+      }, React.createElement("div", {
+        className: "col-md-12"
+      }, React.createElement(Editor, {
+        apiKey: this.state.editor_api_key,
+        initialValue: this.state.bio,
+        init: this.state.editor_config,
+        onChange: this.handleEditor
+      }), React.createElement("button", {
+        className: "btn btn-danger btn-sm mt-2 p-2",
+        onClick: this.changeBio
+      }, "Save bio"))), React.createElement("div", {
+        className: "row"
+      }, React.createElement("div", {
+        className: "col-md-12"
+      }, React.createElement("ul", {
+        className: "nav nav-tabs",
+        id: "myTab",
+        role: "tablist"
+      }, React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link active",
+        id: "account-tab",
+        "data-toggle": "tab",
+        href: "#account",
+        role: "tab",
+        "aria-controls": "account",
+        "aria-selected": "true"
+      }, "Account")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        id: "profile-tab",
+        "data-toggle": "tab",
+        href: "#profile",
+        role: "tab",
+        "aria-controls": "profile",
+        "aria-selected": "false"
+      }, "Profile")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        id: "university-tab",
+        "data-toggle": "tab",
+        href: "#university",
+        role: "tab",
+        "aria-controls": "university",
+        "aria-selected": "false"
+      }, "University Information"))), React.createElement("div", {
+        className: "tab-content profile-tab",
+        id: "myTabContent"
+      }, React.createElement("div", {
+        className: "tab-pane fade show active",
+        id: "account",
+        role: "tabpanel",
+        "aria-labelledby": "account-tab"
+      }, React.createElement("form", {
+        onSubmit: this.updateAccountInfo,
+        method: "post"
+      }, React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Old password")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        className: "form-control",
+        type: "password",
+        name: "old_password",
+        placeholder: "Enter the old password",
+        onChange: this.handleAccountChange,
+        required: true
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "New password")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        className: "form-control",
+        type: "password",
+        name: "new_password",
+        placeholder: "Enter a new password",
+        onChange: this.handleAccountChange,
+        required: true
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Confirm password")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        className: "form-control",
+        type: "password",
+        name: "password_confirmation",
+        placeholder: "Confirm password",
+        onChange: this.handleAccountChange,
+        required: true
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("button", {
+        type: "submit",
+        className: "btn btn-danger btn-sm mx-auto"
+      }, "Change Password")))), React.createElement("div", {
+        className: "tab-pane fade",
+        id: "profile",
+        role: "tabpanel",
+        "aria-labelledby": "profile-tab"
+      }, React.createElement("form", {
+        onSubmit: this.updateProfileInfo,
+        method: "post"
+      }, React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Date of Birth")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement(Datetime, {
+        value: moment(this.state.profileInfo.birth_date).format("YYYY-MM-DD"),
+        onChange: this.handleProfileBirthDateChange,
+        dateFormat: "YYYY-MM-DD",
+        timeFormat: false,
+        inputProps: {
+          className: 'form-control',
+          placeholder: 'Enter your birth date',
+          name: 'birth_date',
+          readOnly: true,
+          required: true
+        }
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Gender")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("select", {
+        className: "form-control",
+        name: "gender",
+        onChange: this.handleProfileChange,
+        value: this.state.profileInfo.gender
+      }, React.createElement("option", {
+        disabled: true,
+        value: ""
+      }, "Please select one"), React.createElement("option", {
+        value: "Male"
+      }, "Male"), React.createElement("option", {
+        value: "Female"
+      }, "Female"), React.createElement("option", {
+        value: "Other"
+      }, "Other")))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Mobile Number")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "mobile_number",
+        className: "form-control",
+        placeholder: "Enter your mobile number",
+        value: this.state.profileInfo.mobile_number,
+        onChange: this.handleProfileChange,
+        required: true
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Blood Group")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("select", {
+        className: "form-control",
+        name: "blood_group",
+        onChange: this.handleProfileChange,
+        value: this.state.profileInfo.blood_group
+      }, React.createElement("option", {
+        disabled: true,
+        value: ""
+      }, "Please select one"), React.createElement("option", {
+        value: "A+"
+      }, "A+"), React.createElement("option", {
+        value: "A-"
+      }, "A-"), React.createElement("option", {
+        value: "B+"
+      }, "B+"), React.createElement("option", {
+        value: "B-"
+      }, "B-"), React.createElement("option", {
+        value: "AB+"
+      }, "AB+"), React.createElement("option", {
+        value: "AB-"
+      }, "AB-"), React.createElement("option", {
+        value: "O+"
+      }, "O+"), React.createElement("option", {
+        value: "O-"
+      }, "O-")))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("button", {
+        type: "submit",
+        className: "btn btn-danger btn-sm mx-auto"
+      }, "Save")))), React.createElement("div", {
+        className: "tab-pane fade",
+        id: "university",
+        role: "tabpanel",
+        "aria-labelledby": "university-tab"
+      }, React.createElement("form", {
+        onSubmit: this.updateUniversityProfileInfo,
+        method: "post"
+      }, React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Role")), React.createElement("div", {
+        className: "col-md-8"
+      }, this.state.user.is_teacher ? React.createElement("p", null, "Teacher") : React.createElement("p", null, "Student"))), !this.state.user.is_teacher && React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Student ID")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "student_id",
+        className: "form-control",
+        onChange: this.handleUniversityProfileChange,
+        placeholder: "Enter your student ID no.",
+        value: this.state.universityProfileInfo.student_id
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Department")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "department",
+        className: "form-control",
+        onChange: this.handleUniversityProfileChange,
+        placeholder: "Enter your department",
+        value: this.state.universityProfileInfo.department
+      }))), !this.state.user.is_teacher && React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Ongoing Degree")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "ongoing_degree",
+        className: "form-control",
+        onChange: this.handleUniversityProfileChange,
+        placeholder: "Ongoing Degree",
+        value: this.state.universityProfileInfo.ongoing_degree
+      }))), !this.state.user.is_teacher && React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Session")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "session",
+        className: "form-control",
+        onChange: this.handleUniversityProfileChange,
+        placeholder: "Enter your session",
+        value: this.state.universityProfileInfo.session
+      }))), !this.state.user.is_teacher && React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("label", null, "Alloted Hall")), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("input", {
+        type: "text",
+        name: "alloted_hall",
+        className: "form-control",
+        onChange: this.handleUniversityProfileChange,
+        placeholder: "Alloted hall",
+        value: this.state.universityProfileInfo.alloted_hall
+      }))), React.createElement("div", {
+        className: "row form-group"
+      }, React.createElement("button", {
+        type: "submit",
+        className: "btn btn-danger btn-sm mx-auto"
+      }, "Save"))))))))));
+    }
+  }]);
+
+  return SettingsComponent;
+}(Component);
+
+/* harmony default export */ __webpack_exports__["default"] = (SettingsComponent);
+var rootElement = document.getElementById('settings');
+
+if (rootElement) {
+  ReactDOM.render(React.createElement(SettingsComponent, {
     userId: rootElement.getAttribute('data-user-id')
   }), rootElement);
 }
@@ -90558,7 +91955,7 @@ function (_Component) {
   }, {
     key: "render",
     value: function render() {
-      return React.createElement(React.Fragment, null, React.createElement("div", {
+      return React.createElement(React.Fragment, null, React.createElement(LazyLoad, null, React.createElement("div", {
         className: "row"
       }, React.createElement("main", {
         className: "post blog-post"
@@ -90630,7 +92027,7 @@ function (_Component) {
           key: tag.id,
           className: "tag"
         }, "#", tag.name);
-      })), React.createElement(SingleCommentComponent, null)))))));
+      })), React.createElement(SingleCommentComponent, null))))))));
     }
   }]);
 
@@ -90670,8 +92067,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_js_pagination__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-js-pagination */ "./node_modules/react-js-pagination/dist/Pagination.js");
 /* harmony import */ var react_js_pagination__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_js_pagination__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _tinymce_tinymce_react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @tinymce/tinymce-react */ "./node_modules/@tinymce/tinymce-react/lib/es2015/main/ts/index.js");
-/* harmony import */ var tempusdominus_bootstrap_4_build_css_tempusdominus_bootstrap_4_min_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css */ "./node_modules/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css");
-/* harmony import */ var tempusdominus_bootstrap_4_build_css_tempusdominus_bootstrap_4_min_css__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(tempusdominus_bootstrap_4_build_css_tempusdominus_bootstrap_4_min_css__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var react_lazyload__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react-lazyload */ "./node_modules/react-lazyload/lib/index.js");
+/* harmony import */ var react_lazyload__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(react_lazyload__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var react_datetime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react-datetime */ "./node_modules/react-datetime/DateTime.js");
+/* harmony import */ var react_datetime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_datetime__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var react_datetime_css_react_datetime_css__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react-datetime/css/react-datetime.css */ "./node_modules/react-datetime/css/react-datetime.css");
+/* harmony import */ var react_datetime_css_react_datetime_css__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_datetime_css_react_datetime_css__WEBPACK_IMPORTED_MODULE_9__);
 
 
 
@@ -90679,18 +92080,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+window.swal = sweetalert2__WEBPACK_IMPORTED_MODULE_0___default.a;
 window.React = react__WEBPACK_IMPORTED_MODULE_3___default.a;
+window.Editor = _tinymce_tinymce_react__WEBPACK_IMPORTED_MODULE_6__["Editor"];
+window.LazyLoad = react_lazyload__WEBPACK_IMPORTED_MODULE_7___default.a;
+window.Datetime = react_datetime__WEBPACK_IMPORTED_MODULE_8___default.a;
 window.ReactDOM = react_dom__WEBPACK_IMPORTED_MODULE_1___default.a;
 window.Component = react__WEBPACK_IMPORTED_MODULE_3__["Component"];
-window.Pagination = react_js_pagination__WEBPACK_IMPORTED_MODULE_5___default.a;
 window.DOMPurify = dompurify__WEBPACK_IMPORTED_MODULE_2___default.a;
-window.Editor = _tinymce_tinymce_react__WEBPACK_IMPORTED_MODULE_6__["Editor"];
+window.Pagination = react_js_pagination__WEBPACK_IMPORTED_MODULE_5___default.a;
 window._ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 global.moment = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-
-__webpack_require__(/*! tempusdominus-bootstrap-4 */ "./node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js");
-
-
 
 try {
   window.$ = windows.jQuery = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
@@ -90719,11 +92122,10 @@ if (token) {
 //     encrypted: true
 // });
 
-
-window.swal = sweetalert2__WEBPACK_IMPORTED_MODULE_0___default.a;
 /**
  * In frontend, we will use reactjs
  */
+
 
 __webpack_require__(/*! ./components/frontend/HomepageComponent */ "./resources/js/components/frontend/HomepageComponent.js");
 
@@ -90732,6 +92134,8 @@ __webpack_require__(/*! ./components/frontend/PostFormComponent */ "./resources/
 __webpack_require__(/*! ./components/frontend/ShowPostComponent */ "./resources/js/components/frontend/ShowPostComponent.js");
 
 __webpack_require__(/*! ./components/frontend/ProfileComponent */ "./resources/js/components/frontend/ProfileComponent.js");
+
+__webpack_require__(/*! ./components/frontend/SettingsComponent */ "./resources/js/components/frontend/SettingsComponent.js");
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
