@@ -13,6 +13,8 @@
 
 Route::get('/', ['uses' => 'HomeStaticController@index', 'as' => 'home']);
 
+Route::get('/contact', ['uses' => 'HomeStaticController@showContactForm', 'as' => 'contact']);
+
 Auth::routes(['verify' => true]);
 
 Route::group(['middleware' => 'verified'], function () {

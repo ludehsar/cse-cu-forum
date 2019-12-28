@@ -64,4 +64,9 @@ class HomeStaticController extends Controller
 
         return view('frontend.profile.settings', compact(['userId', 'name']));
     }
+
+    public function showContactForm()
+    {
+        return view('frontend.contact');
+    }
 }
