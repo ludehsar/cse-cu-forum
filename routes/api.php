@@ -13,25 +13,24 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
-
-Route::get('/tags/{id}', ['uses' => 'API\TagAPIController@getTag']);
-
 Route::get('/posts/frontend', ['uses' => 'API\PostAPIController@getFrontendPosts']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     
+    Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
+    Route::post('/categories/create/new', ['uses' => 'API\CategoryAPIController@addCategory']);
+    Route::get('/tags/all', ['uses' => 'API\TagAPIController@getAllTags']);
+    Route::post('/tags/create/new', ['uses' => 'API\TagAPIController@addTag']);
+    
     Route::group(['middleware' => 'admin'], function () {
         // Categories
-        Route::post('/categories/create/new', ['uses' => 'API\CategoryAPIController@addCategory']);
         Route::put('/categories/edit/{id}', ['uses' => 'API\CategoryAPIController@editCategory']);
         Route::delete('/categories/delete/{id}', ['uses' => 'API\CategoryAPIController@deleteCategory']);
-
+        
         // Tags
-        Route::post('/tags/create/new', ['uses' => 'API\TagAPIController@addTag']);
         Route::put('/tags/edit/{id}', ['uses' => 'API\TagAPIController@editTag']);
         Route::delete('/tags/delete/{id}', ['uses' => 'API\TagAPIController@deleteTag']);
-
+        
         // Users
         Route::put('/users/verify/{id}', ['uses' => 'API\UserAPIController@verifyUser']);
         Route::put('/users/block/{id}', ['uses' => 'API\UserAPIController@blockUser']);
@@ -40,9 +39,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::put('/users/{id}/tfs', ['uses' => 'API\UserAPIController@updateTeacherFromStudent']);
     });
     
-    Route::get('/categories/all', ['uses' => 'API\CategoryAPIController@getAllCategories']);
-    Route::get('/tags/all', ['uses' => 'API\TagAPIController@getAllTags']);
-
+    
     // Posts
     Route::get('/posts/all', ['uses' => 'API\PostAPIController@getAllPosts']);
     Route::get('/posts/{id}', ['uses' => 'API\PostAPIController@getPost']);
@@ -64,3 +61,5 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('/user/change_university_profile', ['uses' => 'API\UserAPIController@updateUniversityProfile']);
 });
 
+Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
+Route::get('/tags/{id}', ['uses' => 'API\TagAPIController@getTag']);

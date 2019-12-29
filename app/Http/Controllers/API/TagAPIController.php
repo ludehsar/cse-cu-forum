@@ -59,15 +59,15 @@ class TagAPIController extends Controller
 
         $user = auth('api')->user();
 
-        if (!$user->is_admin) return response(null, 401);
-        
-        Tag::create([
-            'name' => $request->name,
-            'slug' => $slug,
-            'user_id' => $user->id,
-        ]);
+        if ($user->is_verified) {
+            Tag::create([
+                'name' => $request->name,
+                'slug' => $slug,
+                'user_id' => $user->id,
+            ]);
+        }
 
-        return response(null, 201);
+        return response(null, 200);
     }
 
     /**

@@ -59,13 +59,13 @@ class CategoryAPIController extends Controller
 
         $user = auth('api')->user();
 
-        if (!$user->is_admin) return response(null, 401);
-
-        Category::create([
-            'name' => $request->name,
-            'slug' => $slug,
-            'user_id' => $user->id,
-        ]);
+        if ($user->is_verified) {
+            Category::create([
+                'name' => $request->name,
+                'slug' => $slug,
+                'user_id' => $user->id,
+            ]);
+        }
 
         return response(null, 200);
     }

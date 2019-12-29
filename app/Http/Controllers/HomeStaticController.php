@@ -18,10 +18,19 @@ class HomeStaticController extends Controller
         return view('backend.app');
     }
 
-    public function showPostForm()
+    public function showPostForm($id = -1)
     {
+        if ($id != -1) {
+            $post = Post::find($id);
+
+            $postId = $post->id;
+
+            return view('frontend.posts.create', compact('postId'));
+        }
         return view('frontend.posts.create');
     }
+
+
 
     public function showPost($slug)
     {

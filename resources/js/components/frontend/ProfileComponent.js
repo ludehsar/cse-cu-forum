@@ -1,30 +1,3 @@
-function SinglePostReview(props) {
-    return (
-        <div className="row d-flex align-items-stretch">
-            <div className="text w-100">
-                <div className="text-inner d-flex align-items-center">
-                    <div className="content">
-                        <header className="post-header">
-                            <div className="category"><a href="#">{props.category_name}</a></div>
-                            <a href={"/posts/" + props.slug}><h2 className="h4">{props.title}</h2></a>
-                        </header>
-                        <p>{props.subtitle}</p>
-                        <footer className="post-footer d-flex align-items-center">
-                            <div className="date"><i className="icon-clock"></i> {props.created_at}</div>
-                            <div className="contributions"> <i className="fab fa-cuttlefish"></i> {props.total_contribution} contribuions</div>
-                            <div className="love"><i className="far fa-grin-hearts"></i> {props.total_love}</div>
-                            <div className="wow"><i className="far fa-grin-stars"></i> {props.total_wow}</div>
-                            <div className="haha"><i className="far fa-laugh-squint"></i> {props.total_haha}</div>
-                            <div className="angry"><i className="far fa-angry"></i> {props.total_angry}</div>
-                            <div className="comments"><i className="icon-comment"></i>{props.total_comments} comments</div>
-                        </footer>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 class ProfileComponent extends Component {
     constructor(props) {
         super(props);
@@ -56,6 +29,30 @@ class ProfileComponent extends Component {
                 itemsCountPerPage: response.data.per_page,
                 totalItemsCount: response.data.total
             });
+        });
+    }
+
+    deletePost = (postId) => {
+        swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.value) {
+                axios.delete('/api/posts/delete/' + postId).then(() => {
+                    swal.fire(
+                        'Deleted!',
+                        'This post has been deleted successfully!',
+                        'success'
+                    ).then(() => {
+                        window.location.href="/";
+                    });
+                });
+            }
         });
     }
 
@@ -236,20 +233,35 @@ class ProfileComponent extends Component {
                                 <div className="tab-pane fade" id="post" role="tabpanel" area-labelledby="post-tab">
                                     {this.state.posts.map((post) =>
                                         <LazyLoad key={post.id}>
-                                            <SinglePostReview
-                                                key={post.id}
-                                                category_name={post.category_name}
-                                                slug={post.slug}
-                                                title={post.title}
-                                                subtitle={post.subtitle}
-                                                created_at={moment.utc(post.created_at).fromNow()}
-                                                total_contribution={post.total_contribution}
-                                                total_love={post.total_love}
-                                                total_wow={post.total_wow}
-                                                total_haha={post.total_haha}
-                                                total_angry={post.total_angry}
-                                                total_comments={post.total_comments}
-                                            />
+                                            <div className="row d-flex align-items-stretch">
+                                                <div className="text w-100">
+                                                    <div className="text-inner d-flex align-items-center">
+                                                        <div className="content">
+                                                            <a className="float-right font-weight-light" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                <i className="fas fa-ellipsis-v"></i>
+                                                            </a>
+                                                            <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                <a className="dropdown-item" href={"/posts/edit/" + post.id}>Edit</a>
+                                                                <a className="dropdown-item" href="#" onClick={() => { this.deletePost(post.id) }}>Delete</a>
+                                                            </div>
+                                                            <header className="post-header">
+                                                                <div className="category"><a href="#">{post.category_name}</a></div>
+                                                                <a href={"/posts/" + post.slug}><h2 className="h4">{post.title}</h2></a>
+                                                            </header>
+                                                            <p>{post.subtitle}</p>
+                                                            <footer className="post-footer d-flex align-items-center">
+                                                                <div className="date"><i className="icon-clock"></i> {moment.utc(post.created_at).fromNow()}</div>
+                                                                <div className="contributions"> <i className="fab fa-cuttlefish"></i> {post.total_contribution} contribuions</div>
+                                                                <div className="love"><i className="far fa-grin-hearts"></i> {post.total_love}</div>
+                                                                <div className="wow"><i className="far fa-grin-stars"></i> {post.total_wow}</div>
+                                                                <div className="haha"><i className="far fa-laugh-squint"></i> {post.total_haha}</div>
+                                                                <div className="angry"><i className="far fa-angry"></i> {post.total_angry}</div>
+                                                                <div className="comments"><i className="icon-comment"></i>{post.total_comments} comments</div>
+                                                            </footer>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </LazyLoad>
                                     )}
                                     <div className="clearfix mb-3">

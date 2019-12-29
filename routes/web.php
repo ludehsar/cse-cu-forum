@@ -21,6 +21,7 @@ Route::group(['middleware' => 'verified'], function () {
     // Frontend
     Route::group(['middleware' => 'verifiedFromAdmin'], function () {
         Route::get('/posts/add', ['uses' => 'HomeStaticController@showPostForm', 'as' => 'post.create']);
+        Route::get('/posts/edit/{id}', ['uses' => 'HomeStaticController@showPostForm', 'as' => 'post.edit']);
         Route::get('/posts/{slug}', ['uses' => 'HomeStaticController@showPost', 'as' => 'post.show']);
     });
     Route::get('/profile/{username}', ['uses' => 'HomeStaticController@showProfile', 'as' => 'profile']);

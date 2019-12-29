@@ -8,16 +8,20 @@ import { Editor } from '@tinymce/tinymce-react';
 import LazyLoad from 'react-lazyload';
 import Datetime from 'react-datetime';
 import 'react-datetime/css/react-datetime.css';
+import Select from 'react-select'
+import CreatableSelect from 'react-select/creatable';
 
 window.swal = Swal;
 window.React = React;
 window.Editor = Editor;
+window.Select = Select;
 window.LazyLoad = LazyLoad;
 window.Datetime = Datetime;
 window.ReactDOM = ReactDOM;
 window.Component = Component;
 window.DOMPurify = DOMPurify;
 window.Pagination = Pagination;
+window.CreatableSelect = CreatableSelect;
 
 window._ = require('lodash');
 
