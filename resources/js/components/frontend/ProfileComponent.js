@@ -146,7 +146,7 @@ class ProfileComponent extends Component {
                                         </div>
                                         <div className="col-md-8">
                                             {(this.state.user.birth_date) ? (
-                                                <p>{this.state.user.birth_date}</p>
+                                                <p>{moment(this.state.user.birth_date).format("DD MMMM, YYYY")}</p>
                                             ) : (
                                                 <p>Not specified</p>
                                             )}

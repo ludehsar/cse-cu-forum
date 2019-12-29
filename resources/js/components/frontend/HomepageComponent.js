@@ -10,9 +10,9 @@ function SinglePostReview(props) {
                         </header>
                         <p>{props.subtitle}</p>
                         <footer className="post-footer d-flex align-items-center">
-                            <a href="#" className="author d-flex align-items-center flex-wrap">
+                            <a href={"/profile/" + props.username} className="author d-flex align-items-center flex-wrap">
                                 <div className="avatar"><img src={props.user_profile_picture_url} alt="..." className="img-fluid" /></div>
-                                <div className="title"><span>{props.username}</span></div>
+                                <div className="title"><span>{props.user_full_name}</span></div>
                             </a>
                             <div className="date"><i className="icon-clock"></i> {props.created_at}</div>
                             <div className="contributions"> <i className="fab fa-cuttlefish"></i> {props.total_contribution} contribuions</div>
@@ -68,7 +68,8 @@ class HomepageComponent extends Component {
                                 title={post.title}
                                 subtitle={post.subtitle}
                                 user_profile_picture_url={post.user_profile_picture_url}
-                                username={post.user_full_name}
+                                user_full_name={post.user_full_name}
+                                username={post.username}
                                 created_at={moment.utc(post.created_at).fromNow()}
                                 total_contribution={post.total_contribution}
                                 total_love={post.total_love}

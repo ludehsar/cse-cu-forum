@@ -57,15 +57,17 @@ class CategoryAPIController extends Controller
         
         $slug = str_slug($request->name);
 
-        $user_id = auth('api')->user()->id;
+        $user = auth('api')->user();
+
+        if (!$user->is_admin) return response(null, 401);
 
         Category::create([
             'name' => $request->name,
             'slug' => $slug,
-            'user_id' => $user_id,
+            'user_id' => $user->id,
         ]);
 
-        return response(null, 201);
+        return response(null, 200);
     }
 
     /**
@@ -82,12 +84,14 @@ class CategoryAPIController extends Controller
         
         $slug = str_slug($request->name);
 
-        $user_id = auth('api')->user()->id;
-            
+        $user = auth('api')->user();
+
+        if (!$user->is_admin) return response(null, 401);
+
         $category->update([
             'name' => $request->name,
             'slug' => $slug,
-            'user_id' => $user_id,
+            'user_id' => $user->id,
         ]);
 
         return response(null, 200);
@@ -100,6 +104,8 @@ class CategoryAPIController extends Controller
      */
     public function deleteCategory($id)
     {
+        if (!(auth('api')->user()->is_admin)) return response(null, 401);
+
         $category = Category::findOrFail($id);
 
         $category->delete();

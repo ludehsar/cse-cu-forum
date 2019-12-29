@@ -90052,7 +90052,7 @@ function SinglePostReview(props) {
   }, props.title))), React.createElement("p", null, props.subtitle), React.createElement("footer", {
     className: "post-footer d-flex align-items-center"
   }, React.createElement("a", {
-    href: "#",
+    href: "/profile/" + props.username,
     className: "author d-flex align-items-center flex-wrap"
   }, React.createElement("div", {
     className: "avatar"
@@ -90062,7 +90062,7 @@ function SinglePostReview(props) {
     className: "img-fluid"
   })), React.createElement("div", {
     className: "title"
-  }, React.createElement("span", null, props.username))), React.createElement("div", {
+  }, React.createElement("span", null, props.user_full_name))), React.createElement("div", {
     className: "date"
   }, React.createElement("i", {
     className: "icon-clock"
@@ -90184,7 +90184,8 @@ function (_Component) {
           title: post.title,
           subtitle: post.subtitle,
           user_profile_picture_url: post.user_profile_picture_url,
-          username: post.user_full_name,
+          user_full_name: post.user_full_name,
+          username: post.username,
           created_at: moment.utc(post.created_at).fromNow(),
           total_contribution: post.total_contribution,
           total_love: post.total_love,
@@ -90875,7 +90876,7 @@ function (_Component) {
         className: "col-md-4"
       }, React.createElement("strong", null, "Date of birth")), React.createElement("div", {
         className: "col-md-8"
-      }, this.state.user.birth_date ? React.createElement("p", null, this.state.user.birth_date) : React.createElement("p", null, "Not specified"))), React.createElement("div", {
+      }, this.state.user.birth_date ? React.createElement("p", null, moment(this.state.user.birth_date).format("DD MMMM, YYYY")) : React.createElement("p", null, "Not specified"))), React.createElement("div", {
         className: "row"
       }, React.createElement("div", {
         className: "col-md-4"
@@ -91974,7 +91975,7 @@ function (_Component) {
       }, this.state.category.name))), React.createElement("h1", null, this.state.post.title), React.createElement("div", {
         className: "post-footer d-flex align-items-center flex-column flex-sm-row"
       }, React.createElement("a", {
-        href: "#",
+        href: "/profile/" + this.state.user.username,
         className: "author d-flex align-items-center flex-wrap"
       }, React.createElement("div", {
         className: "avatar"

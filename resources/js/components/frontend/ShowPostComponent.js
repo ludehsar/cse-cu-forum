@@ -61,7 +61,7 @@ class ShowPostComponent extends Component {
                                         </div>
                                         <h1>{this.state.post.title}</h1>
                                         <div className="post-footer d-flex align-items-center flex-column flex-sm-row">
-                                            <a href="#" className="author d-flex align-items-center flex-wrap">
+                                            <a href={"/profile/" + this.state.user.username} className="author d-flex align-items-center flex-wrap">
                                                 <div className="avatar"><img src={this.state.user.profile_picture_url} alt="..." className="img-fluid" /></div>
                                                 <div className="title"><span>{this.state.user.name}</span></div>
                                             </a>

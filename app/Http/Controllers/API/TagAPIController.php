@@ -57,12 +57,14 @@ class TagAPIController extends Controller
         
         $slug = str_slug($request->name);
 
-        $user_id = auth('api')->user()->id;
+        $user = auth('api')->user();
+
+        if (!$user->is_admin) return response(null, 401);
         
         Tag::create([
             'name' => $request->name,
             'slug' => $slug,
-            'user_id' => $user_id,
+            'user_id' => $user->id,
         ]);
 
         return response(null, 201);
@@ -82,12 +84,14 @@ class TagAPIController extends Controller
         
         $slug = str_slug($request->name);
 
-        $user_id = auth('api')->user()->id;
+        $user = auth('api')->user();
+
+        if (!$user->is_admin) return response(null, 401);
             
         $tag->update([
             'name' => $request->name,
             'slug' => $slug,
-            'user_id' => $user_id,
+            'user_id' => $user->id,
         ]);
 
         return response(null, 200);
@@ -100,6 +104,8 @@ class TagAPIController extends Controller
      */
     public function deleteTag($id)
     {
+        if (!(auth('api')->user()->is_admin)) return response(null, 401);
+        
         $tag = Tag::findOrFail($id);
 
         $tag->posts()->detach();
