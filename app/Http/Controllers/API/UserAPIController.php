@@ -91,7 +91,7 @@ class UserAPIController extends Controller
         return response($user, 200);
     }
 
-    public function getPosts(int $id, Request $request)
+    public function getPosts(int $id)
     {
         $user = User::findOrFail($id);
 
@@ -103,6 +103,7 @@ class UserAPIController extends Controller
                                 'posts.total_contribution', 'posts.total_love', 'posts.total_wow', 'posts.total_haha', 'posts.total_angry', 'posts.created_at', 'posts.updated_at',
                                 'categories.name as category_name', 'categories.slug as category_slug',
                                 DB::raw('count(comments.id) as total_comments'))
+                        ->where('posts.user_id', '=', $user->id)
                         ->groupBy('posts.id', 'posts.category_id', 'posts.title', 'posts.subtitle', 'posts.slug', 'posts.is_published',
                         'posts.total_contribution', 'posts.total_love', 'posts.total_wow', 'posts.total_haha', 'posts.total_angry', 'posts.created_at', 'posts.updated_at',
                         'categories.name', 'categories.slug')

@@ -39,7 +39,6 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::put('/users/{id}/tfs', ['uses' => 'API\UserAPIController@updateTeacherFromStudent']);
     });
     
-    
     // Posts
     Route::get('/posts/all', ['uses' => 'API\PostAPIController@getAllPosts']);
     Route::get('/posts/{id}', ['uses' => 'API\PostAPIController@getPost']);

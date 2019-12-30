@@ -36,7 +36,7 @@ class HomeStaticController extends Controller
     {
         $post = Post::where('slug', $slug)->first();
 
-        if (!$post) {
+        if (!$post || $post->is_published == false) {
             return redirect('/');
         }
 
