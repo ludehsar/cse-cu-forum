@@ -172,6 +172,105 @@
     font-weight: 600;
 }
 
+.reaction-table {
+    width: 100%;
+}
+
+.reaction_table td {
+    width: 20%;
+    text-align: center;
+}
+
+.reaction_holder {
+    margin: 8px;
+    padding: 16px 0 2px 0;
+    border-radius: 8px;
+    transition: all .2s;
+    cursor: pointer;
+}
+
+.reaction_holder:hover, .reaction_holder.active {
+    transform: scale(1.1);
+}
+
+.reaction_table td i {
+    font-size: 1.8em;
+}
+
+.reaction_counter {
+    font-size: .9em;
+}
+
+.reaction_name {
+    font-size: .95em;
+    margin-top: 14px;
+    margin-bottom: 1rem;
+}
+
+.reaction_holder[data-name="helpful"] {
+    color: #317cc8;
+}
+
+.reaction_holder[data-name="unhelpful"] {
+    color: #2d3338;
+}
+
+.reaction_holder[data-name="love"] {
+    color: #d3619f;
+}
+
+.reaction_holder[data-name="wow"] {
+    color: #d2d433;
+}
+
+.reaction_holder[data-name="haha"] {
+    color: #73f707;
+}
+
+.reaction_holder[data-name="angry"] {
+    color: #ff0000;
+}
+
+.reaction_holder[data-name="helpful"].active {
+    box-shadow: 0 1px 5px 0 rgba(0, 17, 255, 0.5);
+}
+
+.reaction_holder[data-name="unhelpful"].active {
+    box-shadow: 0 1px 5px 0 rgba(32, 28, 30, 0.5);
+}
+
+.reaction_holder[data-name="love"].active {
+    box-shadow: 0 1px 5px 0 rgba(255, 0, 221, 0.5);
+}
+
+.reaction_holder[data-name="wow"].active {
+    box-shadow: 0 1px 5px 0 rgba(238, 255, 0, 0.5);
+}
+
+.reaction_holder[data-name="haha"].active {
+    box-shadow: 0 1px 5px 0 rgba(9, 255, 1, 0.5);
+}
+
+.reaction_holder[data-name="angry"].active {
+    box-shadow: 0 1px 5px 0 rgba(255, 0, 0, 0.5);
+}
+
+@media only screen and (max-width: 1023px) {
+    .reaction_holder {
+        margin: 4px;
+        padding: 8px 0 2px 0;
+        border-radius: 6px;
+    }
+
+    .reaction_table td i {
+        font-size: 1.4em;
+    }
+
+    .reaction_name {
+        font-size: .8em;
+    }
+}
+
 @media (max-width: 767px) {
     .user-details {
         text-align: center;

@@ -1456,7 +1456,7 @@ main.posts-listing .post-footer {
   margin-bottom: 40px;
 }
 
-.blog-post .post-comments .comment:last-of-type .comment-body {
+.blog-post .post-comments .comment:last-of-type .comment-footer {
   border-bottom: none;
 }
 
@@ -1491,6 +1491,10 @@ main.posts-listing .post-footer {
 .blog-post .post-comments .comment-body {
   margin-left: 55px;
   margin-top: 10px;
+}
+
+.blog-post .post-comments .comment-footer {
+  margin-left: 40px;
   margin-bottom: 25px;
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;

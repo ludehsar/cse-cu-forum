@@ -97655,6 +97655,336 @@ module.exports = function(module) {
 
 /***/ }),
 
+/***/ "./resources/js/components/frontend/CommentComponent.js":
+/*!**************************************************************!*\
+  !*** ./resources/js/components/frontend/CommentComponent.js ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+
+function _typeof(obj) {
+  if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
+    _typeof = function _typeof(obj) {
+      return _typeof2(obj);
+    };
+  } else {
+    _typeof = function _typeof(obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
+    };
+  }
+
+  return _typeof(obj);
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  return Constructor;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (_typeof(call) === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+var CommentComponent =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(CommentComponent, _Component);
+
+  function CommentComponent(props) {
+    var _this;
+
+    _classCallCheck(this, CommentComponent);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(CommentComponent).call(this, props));
+
+    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
+      console.log(e.target.getContent());
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "reply", function () {});
+
+    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
+
+    _defineProperty(_assertThisInitialized(_this), "report", function () {});
+
+    _this.state = {
+      editor_api_key: "5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft",
+      editor_config: {
+        path_absolute: "http://localhost:8000/",
+        plugins: ['autoresize', 'code', 'codesample', 'emoticons', 'hr', 'image', 'imagetools', 'insertdatetime', 'link', 'lists', 'media', 'preview', 'print', 'table'],
+        toolbar: 'undo redo print | styleselect | fontselect | fontsizeselect | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | link image media | bullist numlist outdent indent',
+        relative_urls: false,
+        file_picker_callback: function file_picker_callback(callback, value, meta) {
+          var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+          var y = window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight;
+          var type = 'image' === meta.filetype ? 'Images' : 'Files',
+              url = _this.state.editor_config.path_absolute + 'laravel-filemanager?editor=tinymce5&type=' + type;
+          tinymce.activeEditor.windowManager.openUrl({
+            url: url,
+            title: 'Filemanager',
+            width: x * 0.8,
+            height: y * 0.8,
+            onMessage: function onMessage(api, message) {
+              callback(message.content);
+            }
+          });
+        }
+      }
+    };
+    return _this;
+  }
+
+  _createClass(CommentComponent, [{
+    key: "render",
+    value: function render() {
+      return React.createElement("div", {
+        className: "post-comments"
+      }, React.createElement("header", null, React.createElement("h3", {
+        className: "h6"
+      }, "Post Comments", React.createElement("span", {
+        className: "no-of-comments"
+      }, "(3)"))), React.createElement("div", {
+        className: "comment"
+      }, React.createElement("div", {
+        className: "comment-header d-flex justify-content-between"
+      }, React.createElement("div", {
+        className: "user d-flex align-items-center"
+      }, React.createElement("div", {
+        className: "image"
+      }, React.createElement("img", {
+        src: "/frontend/img/user.svg",
+        alt: "...",
+        className: "img-fluid rounded-circle"
+      })), React.createElement("div", {
+        className: "title"
+      }, React.createElement("strong", null, "Jabi Hernandiz"), React.createElement("span", {
+        className: "date"
+      }, "May 2016")))), React.createElement("div", {
+        className: "comment-body"
+      }, React.createElement("p", null, "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.")), React.createElement("div", {
+        className: "comment-footer accordion"
+      }, React.createElement("ul", {
+        className: "nav"
+      }, React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#react-comment",
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "react-options"
+      }, "React")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#reply-comment",
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "reply-options"
+      }, "Reply")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#report-comment",
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "report-options"
+      }, "Report"))), React.createElement("div", {
+        className: "collapse",
+        id: "react-comment",
+        "data-parent": ".comment-footer"
+      }, React.createElement("div", {
+        className: "row"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("h3", {
+        className: "h6"
+      }, "Is it helpful?"), React.createElement("table", {
+        className: "table reaction_table"
+      }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "helpful",
+        "data-type": "1"
+      }, React.createElement("i", {
+        className: "far fa-thumbs-up"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Yes"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder active",
+        "data-name": "unhelpful",
+        "data-type": "2"
+      }, React.createElement("i", {
+        className: "far fa-thumbs-down"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "2"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Not so"))))))), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("h3", {
+        className: "h6"
+      }, "Express your feelings regarding this comment"), React.createElement("table", {
+        className: "table reaction_table"
+      }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "love",
+        "data-type": "3"
+      }, React.createElement("i", {
+        className: "far fa-grin-hearts"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Love"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder active",
+        "data-name": "wow",
+        "data-type": "4"
+      }, React.createElement("i", {
+        className: "far fa-grin-stars"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "2"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Wow"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "haha",
+        "data-type": "5"
+      }, React.createElement("i", {
+        className: "far fa-laugh-squint"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Haha"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "angry",
+        "data-type": "6"
+      }, React.createElement("i", {
+        className: "far fa-angry"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Angry"))))))))), React.createElement("div", {
+        className: "collapse",
+        id: "reply-comment",
+        "data-parent": ".comment-footer"
+      }, React.createElement(Editor, {
+        apiKey: this.state.editor_api_key,
+        init: this.state.editor_config,
+        onChange: this.handleEditor
+      }), React.createElement("button", {
+        type: "button",
+        className: "btn btn-danger btn-sm mt-2",
+        onClick: this.reply
+      }, "Reply")), React.createElement("div", {
+        className: "collapse",
+        id: "report-comment",
+        "data-parent": ".comment-footer"
+      }, React.createElement("textarea", {
+        "class": "form-control",
+        rows: "3",
+        onChange: this.handleReport,
+        placeholder: "Give some description so that we can identify"
+      }), React.createElement("button", {
+        type: "button",
+        className: "btn btn-danger btn-sm mt-2",
+        onClick: this.report
+      }, "Submit")))));
+    }
+  }]);
+
+  return CommentComponent;
+}(Component);
+
+/* harmony default export */ __webpack_exports__["default"] = (CommentComponent);
+
+/***/ }),
+
 /***/ "./resources/js/components/frontend/HomepageComponent.js":
 /*!***************************************************************!*\
   !*** ./resources/js/components/frontend/HomepageComponent.js ***!
@@ -99702,6 +100032,7 @@ if (rootElement) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _CommentComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CommentComponent */ "./resources/js/components/frontend/CommentComponent.js");
 function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
 
 
@@ -99786,19 +100117,19 @@ function _possibleConstructorReturn(self, call) {
   return _assertThisInitialized(self);
 }
 
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
   }
 
   return self;
-}
-
-function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf(o);
 }
 
 function _inherits(subClass, superClass) {
@@ -99825,33 +100156,22 @@ function _setPrototypeOf(o, p) {
   return _setPrototypeOf(o, p);
 }
 
-function SingleCommentComponent(props) {
-  return React.createElement("div", {
-    className: "post-comments"
-  }, React.createElement("header", null, React.createElement("h3", {
-    className: "h6"
-  }, "Post Comments", React.createElement("span", {
-    className: "no-of-comments"
-  }, "(3)"))), React.createElement("div", {
-    className: "comment"
-  }, React.createElement("div", {
-    className: "comment-header d-flex justify-content-between"
-  }, React.createElement("div", {
-    className: "user d-flex align-items-center"
-  }, React.createElement("div", {
-    className: "image"
-  }, React.createElement("img", {
-    src: "/frontend/img/user.svg",
-    alt: "...",
-    className: "img-fluid rounded-circle"
-  })), React.createElement("div", {
-    className: "title"
-  }, React.createElement("strong", null, "Jabi Hernandiz"), React.createElement("span", {
-    className: "date"
-  }, "May 2016")))), React.createElement("div", {
-    className: "comment-body"
-  }, React.createElement("p", null, "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam."))));
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
 }
+
+
 
 var ShowPostComponent =
 /*#__PURE__*/
@@ -99864,7 +100184,40 @@ function (_Component) {
     _classCallCheck(this, ShowPostComponent);
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(ShowPostComponent).call(this, props));
+
+    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
+      console.log(e.target.getContent());
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "reply", function () {});
+
+    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
+
+    _defineProperty(_assertThisInitialized(_this), "report", function () {});
+
     _this.state = {
+      editor_api_key: "5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft",
+      editor_config: {
+        path_absolute: "http://localhost:8000/",
+        plugins: ['autoresize', 'code', 'codesample', 'emoticons', 'hr', 'image', 'imagetools', 'insertdatetime', 'link', 'lists', 'media', 'preview', 'print', 'table'],
+        toolbar: 'undo redo print | styleselect | fontselect | fontsizeselect | bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify | link image media | bullist numlist outdent indent',
+        relative_urls: false,
+        file_picker_callback: function file_picker_callback(callback, value, meta) {
+          var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+          var y = window.innerHeight || document.documentElement.clientHeight || document.getElementsByTagName('body')[0].clientHeight;
+          var type = 'image' === meta.filetype ? 'Images' : 'Files',
+              url = _this.state.editor_config.path_absolute + 'laravel-filemanager?editor=tinymce5&type=' + type;
+          tinymce.activeEditor.windowManager.openUrl({
+            url: url,
+            title: 'Filemanager',
+            width: x * 0.8,
+            height: y * 0.8,
+            onMessage: function onMessage(api, message) {
+              callback(message.content);
+            }
+          });
+        }
+      },
       post: {},
       category: {},
       tags: [],
@@ -99997,7 +100350,134 @@ function (_Component) {
           key: tag.id,
           className: "tag"
         }, "#", tag.name);
-      })), React.createElement(SingleCommentComponent, null))))))));
+      })), React.createElement("div", {
+        className: "posts-nav"
+      }, React.createElement("div", {
+        className: "row"
+      }, React.createElement("div", {
+        className: "col-md-4"
+      }, React.createElement("h3", {
+        className: "h6"
+      }, "Is it helpful?"), React.createElement("table", {
+        className: "table reaction_table"
+      }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "helpful",
+        "data-type": "1"
+      }, React.createElement("i", {
+        className: "far fa-thumbs-up"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Yes"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder active",
+        "data-name": "unhelpful",
+        "data-type": "2"
+      }, React.createElement("i", {
+        className: "far fa-thumbs-down"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, "0"), React.createElement("p", {
+        className: "reaction_name"
+      }, "Not so"))))))), React.createElement("div", {
+        className: "col-md-8"
+      }, React.createElement("h3", {
+        className: "h6"
+      }, "Express your feelings regarding this post"), React.createElement("table", {
+        className: "table reaction_table"
+      }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "love",
+        "data-type": "3"
+      }, React.createElement("i", {
+        className: "far fa-grin-hearts"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, this.state.post.total_love), React.createElement("p", {
+        className: "reaction_name"
+      }, "Love"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder active",
+        "data-name": "wow",
+        "data-type": "4"
+      }, React.createElement("i", {
+        className: "far fa-grin-stars"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, this.state.post.total_wow), React.createElement("p", {
+        className: "reaction_name"
+      }, "Wow"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "haha",
+        "data-type": "5"
+      }, React.createElement("i", {
+        className: "far fa-laugh-squint"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, this.state.post.total_haha), React.createElement("p", {
+        className: "reaction_name"
+      }, "Haha"))), React.createElement("td", null, React.createElement("div", {
+        className: "reaction_holder",
+        "data-name": "angry",
+        "data-type": "6"
+      }, React.createElement("i", {
+        className: "far fa-angry"
+      }), React.createElement("br", null), React.createElement("span", {
+        className: "reaction_counter"
+      }, this.state.post.total_angry), React.createElement("p", {
+        className: "reaction_name"
+      }, "Angry"))))))))), React.createElement("div", {
+        className: "row"
+      }, React.createElement("div", {
+        className: "col-md-12"
+      }, React.createElement("div", {
+        className: "accordion"
+      }, React.createElement("ul", {
+        className: "nav"
+      }, React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#reply-post",
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "reply-options"
+      }, "Reply")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#report-post",
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "report-options"
+      }, "Report"))), React.createElement("div", {
+        className: "collapse",
+        id: "reply-post",
+        "data-parent": ".accordion"
+      }, React.createElement(Editor, {
+        apiKey: this.state.editor_api_key,
+        init: this.state.editor_config,
+        onChange: this.handleEditor
+      }), React.createElement("button", {
+        type: "button",
+        className: "btn btn-danger btn-sm mt-2",
+        onClick: this.reply
+      }, "Reply")), React.createElement("div", {
+        className: "collapse",
+        id: "report-post",
+        "data-parent": ".accordion"
+      }, React.createElement("textarea", {
+        "class": "form-control",
+        rows: "3",
+        onChange: this.handleReport,
+        placeholder: "Give some description so that we can identify"
+      }), React.createElement("button", {
+        type: "button",
+        className: "btn btn-danger btn-sm mt-2",
+        onClick: this.report
+      }, "Submit"))))), React.createElement(_CommentComponent__WEBPACK_IMPORTED_MODULE_1__["default"], null))))))));
     }
   }]);
 
