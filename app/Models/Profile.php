@@ -21,7 +21,7 @@ class Profile extends Model
      * @var array
      */
     protected $fillable = [
-        'birth_date', 'gender', 'mobile_number', 'blood_group', 'bio', 'profile_picture_url', 'contribution_point'
+        'birth_date', 'gender', 'mobile_number', 'blood_group', 'bio', 'contribution_point'
     ];
 
     /**

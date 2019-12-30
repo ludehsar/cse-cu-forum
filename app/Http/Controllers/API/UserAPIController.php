@@ -5,12 +5,14 @@ namespace App\Http\Controllers\API;
 use Image;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Post;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 use App\Models\FrontendPost;
 use Yajra\Datatables\Datatables;
 use App\Models\UniversityProfile;
 use App\Models\UserOverallProfile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
@@ -89,12 +91,30 @@ class UserAPIController extends Controller
         return response($user, 200);
     }
 
-    public function getPosts(int $id)
+    public function getPosts(int $id, Request $request)
     {
         $user = User::findOrFail($id);
-        $posts = FrontendPost::where('username', $user->username)->where('is_published', true)->latest();
 
-        return response($posts->paginate(3), 200);
+        if (auth('api')->user()->id == $id) {
+            $posts = DB::table('posts')
+                        ->leftJoin('categories', 'posts.category_id', '=', 'categories.id')
+                        ->leftJoin('comments', 'posts.id', '=', 'comments.post_id')
+                        ->select('posts.id', 'posts.category_id', 'posts.title', 'posts.subtitle', 'posts.slug', 'posts.is_published',
+                                'posts.total_contribution', 'posts.total_love', 'posts.total_wow', 'posts.total_haha', 'posts.total_angry', 'posts.created_at', 'posts.updated_at',
+                                'categories.name as category_name', 'categories.slug as category_slug',
+                                DB::raw('count(comments.id) as total_comments'))
+                        ->groupBy('posts.id', 'posts.category_id', 'posts.title', 'posts.subtitle', 'posts.slug', 'posts.is_published',
+                        'posts.total_contribution', 'posts.total_love', 'posts.total_wow', 'posts.total_haha', 'posts.total_angry', 'posts.created_at', 'posts.updated_at',
+                        'categories.name', 'categories.slug')
+                        ->paginate(3);
+
+            return response($posts, 200);
+        }
+        else {
+            $posts = FrontendPost::where('username', $user->username)->latest();
+
+            return response($posts->paginate(3), 200);
+        }
     }
 
     /**

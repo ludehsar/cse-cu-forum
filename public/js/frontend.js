@@ -98654,6 +98654,7 @@ function (_Component) {
       categories: [],
       user: {},
       userId: props.userId,
+      selfId: -1,
       activePage: 1,
       itemsCountPerPage: 1,
       totalItemsCount: 1
@@ -98678,9 +98679,14 @@ function (_Component) {
                     user: response.data
                   });
                 });
+                axios.get('/api/user').then(function (response) {
+                  _this2.setState({
+                    selfId: response.data.id
+                  });
+                });
                 this.handlePageChange();
 
-              case 2:
+              case 3:
               case "end":
                 return _context2.stop();
             }
@@ -98836,7 +98842,7 @@ function (_Component) {
           className: "text-inner d-flex align-items-center"
         }, React.createElement("div", {
           className: "content"
-        }, React.createElement("a", {
+        }, _this3.state.selfId == _this3.state.userId && React.createElement("div", null, React.createElement("a", {
           className: "float-right font-weight-light",
           id: "dropdownMenuButton",
           "data-toggle": "dropdown",
@@ -98856,7 +98862,7 @@ function (_Component) {
           onClick: function onClick() {
             _this3.deletePost(post.id);
           }
-        }, "Delete")), React.createElement("header", {
+        }, "Delete"))), React.createElement("header", {
           className: "post-header"
         }, React.createElement("div", {
           className: "category"

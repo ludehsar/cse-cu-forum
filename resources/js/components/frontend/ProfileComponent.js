@@ -7,6 +7,7 @@ class ProfileComponent extends Component {
             categories: [],
             user: {},
             userId: props.userId,
+            selfId: -1,
             activePage: 1,
             itemsCountPerPage: 1,
             totalItemsCount: 1,
@@ -16,6 +17,12 @@ class ProfileComponent extends Component {
     async componentDidMount() {
         axios.get('/api/users/' + this.state.userId + '/complete').then((response) => {
             this.setState({user: response.data});
+        });
+
+        axios.get('/api/user').then((response) => {
+            this.setState({
+                selfId: response.data.id
+            });
         });
 
         this.handlePageChange();
@@ -237,13 +244,17 @@ class ProfileComponent extends Component {
                                                 <div className="text w-100">
                                                     <div className="text-inner d-flex align-items-center">
                                                         <div className="content">
-                                                            <a className="float-right font-weight-light" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                <i className="fas fa-ellipsis-v"></i>
-                                                            </a>
-                                                            <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                                <a className="dropdown-item" href={"/posts/edit/" + post.id}>Edit</a>
-                                                                <a className="dropdown-item" href="#" onClick={() => { this.deletePost(post.id) }}>Delete</a>
-                                                            </div>
+                                                            {(this.state.selfId == this.state.userId) && (
+                                                                <div>
+                                                                    <a className="float-right font-weight-light" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                        <i className="fas fa-ellipsis-v"></i>
+                                                                    </a>
+                                                                    <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                                                        <a className="dropdown-item" href={"/posts/edit/" + post.id}>Edit</a>
+                                                                        <a className="dropdown-item" href="#" onClick={() => { this.deletePost(post.id) }}>Delete</a>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                             <header className="post-header">
                                                                 <div className="category"><a href="#">{post.category_name}</a></div>
                                                                 <a href={"/posts/" + post.slug}><h2 className="h4">{post.title}</h2></a>
