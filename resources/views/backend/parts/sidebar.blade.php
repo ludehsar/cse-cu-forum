@@ -37,6 +37,13 @@
     </li>
 
     <li class="nav-item">
+        <router-link class="nav-link" to="/admin/comments">
+            <i class="fas fa-fw fa-comments"></i>
+            <span>Comments</span>
+        </router-link>
+    </li>
+
+    <li class="nav-item">
         <router-link class="nav-link" to="/admin/categories">
             <i class="fas fa-fw fa-th"></i>
             <span>Categories</span>

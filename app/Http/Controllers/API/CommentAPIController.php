@@ -5,13 +5,34 @@ namespace App\Http\Controllers\API;
 use App\MOdels\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use Yajra\Datatables\Datatables;
 use App\Http\Controllers\Controller;
 
 class CommentAPIController extends Controller
 {
     public function getAllComments()
     {
-        // ...
+        return Datatables::of(Comment::query())
+            ->removeColumn('user_id')
+            ->removeColumn('description')
+            ->removeColumn('total_contribution')
+            ->removeColumn('total_love')
+            ->removeColumn('total_wow')
+            ->removeColumn('total_haha')
+            ->removeColumn('total_angry')
+            ->addColumn('created_by', function($comment) {
+                return $comment->user->name;
+            })
+            ->addColumn('action', function ($comment) {
+                $attr = '<div class="btn-group" role="group" aria-label="Second group">';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-primary" id="view-comment" data-id="' . $comment->id . '"><i class="fa fa-eye"></i> View</a>';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-info" id="edit-comment" data-id="' . $comment->id . '"><i class="fa fa-edit"></i> Edit</a>';
+                $attr .= '<a href="javascript:void(0)" class="btn btn-sm btn-danger" id="delete-comment" data-id="' . $comment->id . '"><i class="fa fa-trash"></i> Delete</a></div>';
+
+                return $attr;
+            })
+            ->rawColumns(['created_by', 'action'])
+            ->make(true);
     }
 
     public function getCommentsOfPost($id)

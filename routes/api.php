@@ -48,6 +48,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('/posts/delete/{id}', ['uses' => 'API\PostAPIController@deletePost']);
 
     // Comments
+    Route::get('/comments/all', ['uses' => 'API\CommentAPIController@getAllComments']);
     Route::get('/posts/{id}/comments', ['uses' => 'API\CommentAPIController@getCommentsOfPost']);
     Route::get('/comments/{id}/replies', ['uses' => 'API\CommentAPIController@getRepliesOfComment']);
     Route::get('/comments/{id}', ['uses' => 'API\CommentAPIController@getComment']);

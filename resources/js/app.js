@@ -120,6 +120,9 @@ const routes = [
     { path: '/admin/users', component: require('./components/backend/UserComponent.vue').default },
     { path: '/admin/users/view/:userId', component: require('./components/backend/ViewUserComponent.vue').default },
     { path: '/admin/user/settings', component: require('./components/backend/EditUserComponent.vue').default },
+    { path: '/admin/comments', component: require('./components/backend/CommentComponent.vue').default },
+    { path: '/admin/comments/view/:commentId', component: require('./components/backend/ViewCommentComponent.vue').default },
+    { path: '/admin/comments/edit/:commentId', component: require('./components/backend/EditCommentComponent.vue').default },
 ];
 
 const router = new VueRouter({
