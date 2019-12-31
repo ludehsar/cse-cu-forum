@@ -35,7 +35,9 @@ class ShowPostComponent extends Component {
             category: {},
             tags: [],
             user: {},
+            comments: [],
             postId: props.postId,
+            replyDescription: ''
         }
     }
 
@@ -45,21 +47,40 @@ class ShowPostComponent extends Component {
             axios.get('/api/categories/' + this.state.post.category_id).then((res2) => {
                 this.setState({category: res2.data});
             });
-            axios.get('/api/users/' + this.state.post.user_id).then((res4) => {
-                this.setState({user: res4.data});
+            axios.get('/api/users/' + this.state.post.user_id).then((res2) => {
+                this.setState({user: res2.data});
             });
         });
-        axios.get('/api/posts/' + this.state.postId + '/tags').then((res3) => {
-            this.setState({tags: res3.data});
+        axios.get('/api/posts/' + this.state.postId + '/tags').then((response) => {
+            this.setState({tags: response.data});
+        });
+        
+        this.fetchComments();
+    }
+
+    fetchComments = () => {
+        axios.get('/api/posts/' + this.state.postId + '/comments').then((response) => {
+            this.setState({comments: response.data});
         });
     }
 
     handleEditor = (e) => {
-        console.log(e.target.getContent());
+        let rev = e.target.getContent();
+        this.setState({
+            replyDescription: rev
+        });
     }
 
     reply = () => {
-
+        axios.post('/api/comments/add', {
+            post_id: this.state.postId,
+            description: this.state.replyDescription
+        }).then(() => {
+            this.fetchComments();
+            this.setState({
+                replyDescription: ''
+            });
+        });
     }
 
     handleReport = (e) => {
@@ -188,13 +209,22 @@ class ShowPostComponent extends Component {
                                                         <button type="button" className="btn btn-danger btn-sm mt-2" onClick={this.reply}>Reply</button>
                                                     </div>
                                                     <div className="collapse" id="report-post" data-parent=".accordion">
-                                                        <textarea class="form-control" rows="3" onChange={this.handleReport} placeholder="Give some description so that we can identify"></textarea>
+                                                        <textarea className="form-control" rows="3" onChange={this.handleReport} placeholder="Give some description so that we can identify"></textarea>
                                                         <button type="button" className="btn btn-danger btn-sm mt-2" onClick={this.report}>Submit</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <CommentComponent />
+                                        <div className="post-comments">
+                                            <header>
+                                                <h3 className="h6">Post Comments<span className="no-of-comments">(3)</span></h3>
+                                            </header>
+                                            {this.state.comments.map((comment) =>
+                                                <LazyLoad key={comment.id}>
+                                                    <CommentComponent key={comment.id} commentId={comment.id} />
+                                                </LazyLoad>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

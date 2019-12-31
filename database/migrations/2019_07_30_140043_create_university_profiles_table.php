@@ -15,7 +15,7 @@ class CreateUniversityProfilesTable extends Migration
     {
         Schema::create('university_profiles', function (Blueprint $table) {
             $table->unsignedBigInteger('user_id')->unique();
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->boolean('is_teacher')->default(0);
             $table->string('student_id')->nullable();
             $table->string('department')->nullable();

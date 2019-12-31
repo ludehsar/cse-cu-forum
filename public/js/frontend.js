@@ -97664,7 +97664,11 @@ module.exports = function(module) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
 function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+
+
 
 function _typeof(obj) {
   if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
@@ -97678,6 +97682,42 @@ function _typeof(obj) {
   }
 
   return _typeof(obj);
+}
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
 }
 
 function _classCallCheck(instance, Constructor) {
@@ -97776,11 +97816,87 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(CommentComponent).call(this, props));
 
-    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
-      console.log(e.target.getContent());
+    _defineProperty(_assertThisInitialized(_this), "fetchComment", function () {
+      axios.get('/api/comments/' + _this.state.commentId).then(function (response) {
+        _this.setState({
+          comment: response.data
+        });
+
+        axios.get('/api/users/' + _this.state.comment.user_id).then(function (res2) {
+          _this.setState({
+            user: res2.data
+          });
+        });
+      });
+
+      _this.fetchReplies();
     });
 
-    _defineProperty(_assertThisInitialized(_this), "reply", function () {});
+    _defineProperty(_assertThisInitialized(_this), "fetchReplies", function () {
+      axios.get('/api/comments/' + _this.state.commentId + '/replies').then(function (response) {
+        _this.setState({
+          replies: response.data
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleReplyEditor", function (e) {
+      var rev = e.target.getContent();
+
+      _this.setState({
+        replyDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "handleEditEditor", function (e) {
+      var rev = e.target.getContent();
+
+      _this.setState({
+        editDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "reply", function () {
+      axios.post('/api/comments/add', {
+        post_id: _this.state.comment.post_id,
+        parent_id: _this.state.commentId,
+        description: _this.state.replyDescription
+      }).then(function () {
+        _this.fetchReplies();
+
+        _this.setState({
+          replyDescription: ''
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "edit", function () {
+      axios.put('/api/comments/' + _this.state.commentId + '/edit', {
+        description: _this.state.editDescription
+      }).then(function () {
+        _this.fetchComment();
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "deleteComment", function () {
+      swal.fire({
+        title: 'Are you sure you want to delete this comment?',
+        text: "All other replies of this comment will also be deleted!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then(function (result) {
+        if (result.value) {
+          axios["delete"]('/api/comments/' + _this.state.commentId + '/delete').then(function () {
+            swal.fire('Deleted!', 'This comment has been deleted successfully!', 'success').then(function () {
+              document.location.reload(true);
+            });
+          });
+        }
+      });
+    });
 
     _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
 
@@ -97808,47 +97924,94 @@ function (_Component) {
             }
           });
         }
-      }
+      },
+      commentId: props.commentId,
+      selfId: -1,
+      comment: {},
+      replies: [],
+      user: {},
+      editDescription: '',
+      replyDescription: ''
     };
     return _this;
   }
 
   _createClass(CommentComponent, [{
+    key: "componentDidMount",
+    value: function () {
+      var _componentDidMount = _asyncToGenerator(
+      /*#__PURE__*/
+      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        var _this2 = this;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.fetchComment();
+                axios.get('/api/user').then(function (response) {
+                  _this2.setState({
+                    selfId: response.data.id
+                  });
+                });
+
+              case 2:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function componentDidMount() {
+        return _componentDidMount.apply(this, arguments);
+      }
+
+      return componentDidMount;
+    }()
+  }, {
     key: "render",
     value: function render() {
-      return React.createElement("div", {
-        className: "post-comments"
-      }, React.createElement("header", null, React.createElement("h3", {
-        className: "h6"
-      }, "Post Comments", React.createElement("span", {
-        className: "no-of-comments"
-      }, "(3)"))), React.createElement("div", {
+      return React.createElement("div", null, React.createElement("div", {
         className: "comment"
       }, React.createElement("div", {
         className: "comment-header d-flex justify-content-between"
-      }, React.createElement("div", {
+      }, React.createElement("a", {
+        href: "/profile/" + this.state.user.username,
         className: "user d-flex align-items-center"
       }, React.createElement("div", {
         className: "image"
       }, React.createElement("img", {
-        src: "/frontend/img/user.svg",
+        src: this.state.user.profile_picture_url,
         alt: "...",
         className: "img-fluid rounded-circle"
       })), React.createElement("div", {
         className: "title"
-      }, React.createElement("strong", null, "Jabi Hernandiz"), React.createElement("span", {
+      }, React.createElement("strong", null, this.state.user.name), React.createElement("span", {
         className: "date"
-      }, "May 2016")))), React.createElement("div", {
-        className: "comment-body"
-      }, React.createElement("p", null, "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.")), React.createElement("div", {
+      }, moment.utc(this.state.comment.created_at).fromNow())))), React.createElement("div", {
+        className: "comment-body",
+        dangerouslySetInnerHTML: {
+          __html: DOMPurify.sanitize(this.state.comment.description)
+        }
+      }), React.createElement("div", {
         className: "comment-footer accordion"
       }, React.createElement("ul", {
         className: "nav"
-      }, React.createElement("li", {
+      }, this.state.selfId == this.state.user.id && React.createElement("li", {
         className: "nav-item"
       }, React.createElement("a", {
         className: "nav-link",
-        href: "#react-comment",
+        href: "#edit-comment-" + this.state.commentId,
+        "data-toggle": "collapse",
+        role: "button",
+        "aria-expanded": "false",
+        "aria-controls": "edit-options"
+      }, "Edit")), React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#react-comment-" + this.state.commentId,
         "data-toggle": "collapse",
         role: "button",
         "aria-expanded": "false",
@@ -97857,7 +98020,7 @@ function (_Component) {
         className: "nav-item"
       }, React.createElement("a", {
         className: "nav-link",
-        href: "#reply-comment",
+        href: "#reply-comment-" + this.state.commentId,
         "data-toggle": "collapse",
         role: "button",
         "aria-expanded": "false",
@@ -97866,14 +98029,33 @@ function (_Component) {
         className: "nav-item"
       }, React.createElement("a", {
         className: "nav-link",
-        href: "#report-comment",
+        href: "#report-comment-" + this.state.commentId,
         "data-toggle": "collapse",
         role: "button",
         "aria-expanded": "false",
         "aria-controls": "report-options"
-      }, "Report"))), React.createElement("div", {
+      }, "Report")), this.state.selfId == this.state.user.id && React.createElement("li", {
+        className: "nav-item"
+      }, React.createElement("a", {
+        className: "nav-link",
+        href: "#",
+        onClick: this.deleteComment
+      }, "Delete"))), this.state.selfId == this.state.user.id && React.createElement("div", {
         className: "collapse",
-        id: "react-comment",
+        id: "edit-comment-" + this.state.commentId,
+        "data-parent": ".comment-footer"
+      }, React.createElement(Editor, {
+        initialValue: this.state.comment.description,
+        apiKey: this.state.editor_api_key,
+        init: this.state.editor_config,
+        onChange: this.handleEditEditor
+      }), React.createElement("button", {
+        type: "button",
+        className: "btn btn-danger btn-sm mt-2",
+        onClick: this.edit
+      }, "Edit")), React.createElement("div", {
+        className: "collapse",
+        id: "react-comment-" + this.state.commentId,
         "data-parent": ".comment-footer"
       }, React.createElement("div", {
         className: "row"
@@ -97901,7 +98083,7 @@ function (_Component) {
         className: "far fa-thumbs-down"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "2"), React.createElement("p", {
+      }, "0"), React.createElement("p", {
         className: "reaction_name"
       }, "Not so"))))))), React.createElement("div", {
         className: "col-md-8"
@@ -97917,7 +98099,7 @@ function (_Component) {
         className: "far fa-grin-hearts"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.comment.total_love), React.createElement("p", {
         className: "reaction_name"
       }, "Love"))), React.createElement("td", null, React.createElement("div", {
         className: "reaction_holder active",
@@ -97927,7 +98109,7 @@ function (_Component) {
         className: "far fa-grin-stars"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "2"), React.createElement("p", {
+      }, this.state.comment.total_wow), React.createElement("p", {
         className: "reaction_name"
       }, "Wow"))), React.createElement("td", null, React.createElement("div", {
         className: "reaction_holder",
@@ -97937,7 +98119,7 @@ function (_Component) {
         className: "far fa-laugh-squint"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.comment.total_haha), React.createElement("p", {
         className: "reaction_name"
       }, "Haha"))), React.createElement("td", null, React.createElement("div", {
         className: "reaction_holder",
@@ -97947,26 +98129,26 @@ function (_Component) {
         className: "far fa-angry"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.comment.total_angry), React.createElement("p", {
         className: "reaction_name"
       }, "Angry"))))))))), React.createElement("div", {
         className: "collapse",
-        id: "reply-comment",
+        id: "reply-comment-" + this.state.commentId,
         "data-parent": ".comment-footer"
       }, React.createElement(Editor, {
         apiKey: this.state.editor_api_key,
         init: this.state.editor_config,
-        onChange: this.handleEditor
+        onChange: this.handleReplyEditor
       }), React.createElement("button", {
         type: "button",
         className: "btn btn-danger btn-sm mt-2",
         onClick: this.reply
       }, "Reply")), React.createElement("div", {
         className: "collapse",
-        id: "report-comment",
+        id: "report-comment-" + this.state.commentId,
         "data-parent": ".comment-footer"
       }, React.createElement("textarea", {
-        "class": "form-control",
+        className: "form-control",
         rows: "3",
         onChange: this.handleReport,
         placeholder: "Give some description so that we can identify"
@@ -97974,7 +98156,18 @@ function (_Component) {
         type: "button",
         className: "btn btn-danger btn-sm mt-2",
         onClick: this.report
-      }, "Submit")))));
+      }, "Submit")))), React.createElement("div", {
+        style: {
+          marginLeft: '5%'
+        }
+      }, this.state.replies.map(function (reply) {
+        return React.createElement(LazyLoad, {
+          key: reply.id
+        }, React.createElement(CommentComponent, {
+          key: reply.id,
+          commentId: reply.id
+        }));
+      })));
     }
   }]);
 
@@ -100185,11 +100378,34 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(ShowPostComponent).call(this, props));
 
-    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
-      console.log(e.target.getContent());
+    _defineProperty(_assertThisInitialized(_this), "fetchComments", function () {
+      axios.get('/api/posts/' + _this.state.postId + '/comments').then(function (response) {
+        _this.setState({
+          comments: response.data
+        });
+      });
     });
 
-    _defineProperty(_assertThisInitialized(_this), "reply", function () {});
+    _defineProperty(_assertThisInitialized(_this), "handleEditor", function (e) {
+      var rev = e.target.getContent();
+
+      _this.setState({
+        replyDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "reply", function () {
+      axios.post('/api/comments/add', {
+        post_id: _this.state.postId,
+        description: _this.state.replyDescription
+      }).then(function () {
+        _this.fetchComments();
+
+        _this.setState({
+          replyDescription: ''
+        });
+      });
+    });
 
     _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
 
@@ -100222,7 +100438,9 @@ function (_Component) {
       category: {},
       tags: [],
       user: {},
-      postId: props.postId
+      comments: [],
+      postId: props.postId,
+      replyDescription: ''
     };
     return _this;
   }
@@ -100249,19 +100467,20 @@ function (_Component) {
                       category: res2.data
                     });
                   });
-                  axios.get('/api/users/' + _this2.state.post.user_id).then(function (res4) {
+                  axios.get('/api/users/' + _this2.state.post.user_id).then(function (res2) {
                     _this2.setState({
-                      user: res4.data
+                      user: res2.data
                     });
                   });
                 });
-                axios.get('/api/posts/' + this.state.postId + '/tags').then(function (res3) {
+                axios.get('/api/posts/' + this.state.postId + '/tags').then(function (response) {
                   _this2.setState({
-                    tags: res3.data
+                    tags: response.data
                   });
                 });
+                this.fetchComments();
 
-              case 2:
+              case 3:
               case "end":
                 return _context.stop();
             }
@@ -100469,7 +100688,7 @@ function (_Component) {
         id: "report-post",
         "data-parent": ".accordion"
       }, React.createElement("textarea", {
-        "class": "form-control",
+        className: "form-control",
         rows: "3",
         onChange: this.handleReport,
         placeholder: "Give some description so that we can identify"
@@ -100477,7 +100696,20 @@ function (_Component) {
         type: "button",
         className: "btn btn-danger btn-sm mt-2",
         onClick: this.report
-      }, "Submit"))))), React.createElement(_CommentComponent__WEBPACK_IMPORTED_MODULE_1__["default"], null))))))));
+      }, "Submit"))))), React.createElement("div", {
+        className: "post-comments"
+      }, React.createElement("header", null, React.createElement("h3", {
+        className: "h6"
+      }, "Post Comments", React.createElement("span", {
+        className: "no-of-comments"
+      }, "(3)"))), this.state.comments.map(function (comment) {
+        return React.createElement(LazyLoad, {
+          key: comment.id
+        }, React.createElement(_CommentComponent__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          key: comment.id,
+          commentId: comment.id
+        }));
+      })))))))));
     }
   }]);
 

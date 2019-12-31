@@ -67,7 +67,7 @@ class CategoryAPIController extends Controller
             ]);
         }
 
-        return response(null, 200);
+        return response(null, 201);
     }
 
     /**

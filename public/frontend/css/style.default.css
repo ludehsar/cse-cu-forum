@@ -1468,23 +1468,28 @@ main.posts-listing .post-footer {
   display: none;
 }
 
-.blog-post .post-comments img {
+.blog-post .post-comments .image img {
   max-width: 40px;
   min-width: 40px;
   height: 40px;
 }
 
-.blog-post .post-comments strong {
+.blog-post .post-comments img {
+  max-width: 800px;
+  height: auto;
+}
+
+.blog-post .post-comments .title strong {
   display: block;
   color: #555;
 }
 
-.blog-post .post-comments span.date {
+.blog-post .post-comments .title span.date {
   font-size: 0.8em;
   color: #999;
 }
 
-.blog-post .post-comments span.date::after {
+.blog-post .post-comments .title span.date::after {
   display: none;
 }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use DB;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\Category;
