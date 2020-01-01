@@ -97840,6 +97840,22 @@ function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "getContributionType", function () {
+      axios.get('/api/comments/' + _this.state.commentId + '/user-contribution').then(function (response) {
+        _this.setState({
+          contributionType: response.data
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "getContributionInfo", function () {
+      axios.get('/api/comments/' + _this.state.commentId + '/contributions').then(function (response) {
+        _this.setState({
+          contributionInfo: response.data
+        });
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "fetchReplies", function () {
       axios.get('/api/comments/' + _this.state.commentId + '/replies').then(function (response) {
         _this.setState({
@@ -97926,6 +97942,20 @@ function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "contribute", function (e) {
+      var rev = e.target.getAttribute("data-name");
+      axios.post('/api/contribute', {
+        comment_id: _this.state.commentId,
+        contribution_type: rev
+      }).then(function () {
+        _this.fetchComment();
+
+        _this.getContributionType();
+
+        _this.getContributionInfo();
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "report", function () {
       swal.fire({
         title: 'Are you sure you want to report to this comment?',
@@ -97981,7 +98011,9 @@ function (_Component) {
       editDescription: '',
       replyDescription: '',
       reportDescription: '',
-      reactionType: ''
+      reactionType: '',
+      contributionType: '',
+      contributionInfo: {}
     };
     return _this;
   }
@@ -98005,8 +98037,10 @@ function (_Component) {
                   });
                 });
                 this.getReactionType();
+                this.getContributionType();
+                this.getContributionInfo();
 
-              case 3:
+              case 5:
               case "end":
                 return _context.stop();
             }
@@ -98117,24 +98151,24 @@ function (_Component) {
       }, "Is it helpful?"), React.createElement("table", {
         className: "table reaction_table"
       }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "helpful",
-        "data-type": "1"
+        className: this.state.contributionType == "Helpful" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Helpful",
+        onClick: this.contribute
       }, React.createElement("i", {
         className: "far fa-thumbs-up"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.contributionInfo.helpfulness), React.createElement("p", {
         className: "reaction_name"
       }, "Yes"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder active",
-        "data-name": "unhelpful",
-        "data-type": "2"
+        className: this.state.contributionType == "Unhelpful" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Unhelpful",
+        onClick: this.contribute
       }, React.createElement("i", {
         className: "far fa-thumbs-down"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.contributionInfo.unhelpfulness), React.createElement("p", {
         className: "reaction_name"
       }, "Not so"))))))), React.createElement("div", {
         className: "col-md-8"
@@ -100456,6 +100490,22 @@ function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "getContributionType", function () {
+      axios.get('/api/posts/' + _this.state.postId + '/user-contribution').then(function (response) {
+        _this.setState({
+          contributionType: response.data
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "getContributionInfo", function () {
+      axios.get('/api/posts/' + _this.state.postId + '/contributions').then(function (response) {
+        _this.setState({
+          contributionInfo: response.data
+        });
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "getReactionType", function () {
       axios.get('/api/posts/' + _this.state.postId + '/user-reaction').then(function (response) {
         _this.setState({
@@ -100502,6 +100552,20 @@ function (_Component) {
         _this.getPost();
 
         _this.getReactionType();
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "contribute", function (e) {
+      var rev = e.target.getAttribute("data-name");
+      axios.post('/api/contribute', {
+        post_id: _this.state.postId,
+        contribution_type: rev
+      }).then(function () {
+        _this.getPost();
+
+        _this.getContributionType();
+
+        _this.getContributionInfo();
       });
     });
 
@@ -100560,6 +100624,8 @@ function (_Component) {
       postId: props.postId,
       replyDescription: '',
       reportDescription: '',
+      contributionType: '',
+      contributionInfo: {},
       reactionType: ''
     };
     return _this;
@@ -100584,9 +100650,11 @@ function (_Component) {
                   });
                 });
                 this.fetchComments();
+                this.getContributionType();
+                this.getContributionInfo();
                 this.getReactionType();
 
-              case 4:
+              case 6:
               case "end":
                 return _context.stop();
             }
@@ -100655,14 +100723,10 @@ function (_Component) {
       }, React.createElement("i", {
         className: "far fa-laugh-squint"
       }), " ", this.state.post.total_haha), React.createElement("div", {
-        className: "angry"
+        className: "angry meta-last"
       }, React.createElement("i", {
         className: "far fa-angry"
-      }), " ", this.state.post.total_angry), React.createElement("div", {
-        className: "comments meta-last"
-      }, React.createElement("i", {
-        className: "icon-comment"
-      }), 23, " comments"))), React.createElement("div", {
+      }), " ", this.state.post.total_angry))), React.createElement("div", {
         className: "post-body",
         dangerouslySetInnerHTML: {
           __html: DOMPurify.sanitize(this.state.post.description)
@@ -100686,24 +100750,24 @@ function (_Component) {
       }, "Is it helpful?"), React.createElement("table", {
         className: "table reaction_table"
       }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "helpful",
-        "data-type": "1"
+        className: this.state.contributionType == "Helpful" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Helpful",
+        onClick: this.contribute
       }, React.createElement("i", {
         className: "far fa-thumbs-up"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.contributionInfo.helpfulness), React.createElement("p", {
         className: "reaction_name"
       }, "Yes"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder active",
-        "data-name": "unhelpful",
-        "data-type": "2"
+        className: this.state.contributionType == "Unhelpful" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Unhelpful",
+        onClick: this.contribute
       }, React.createElement("i", {
         className: "far fa-thumbs-down"
       }), React.createElement("br", null), React.createElement("span", {
         className: "reaction_counter"
-      }, "0"), React.createElement("p", {
+      }, this.state.contributionInfo.unhelpfulness), React.createElement("p", {
         className: "reaction_name"
       }, "Not so"))))))), React.createElement("div", {
         className: "col-md-8"
@@ -100806,9 +100870,7 @@ function (_Component) {
         className: "post-comments"
       }, React.createElement("header", null, React.createElement("h3", {
         className: "h6"
-      }, "Post Comments", React.createElement("span", {
-        className: "no-of-comments"
-      }, "(3)"))), this.state.comments.map(function (comment) {
+      }, "Post Comments")), this.state.comments.map(function (comment) {
         return React.createElement(LazyLoad, {
           key: comment.id
         }, React.createElement(_CommentComponent__WEBPACK_IMPORTED_MODULE_1__["default"], {

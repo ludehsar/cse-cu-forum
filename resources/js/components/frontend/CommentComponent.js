@@ -38,6 +38,8 @@ class CommentComponent extends Component {
             replyDescription: '',
             reportDescription: '',
             reactionType: '',
+            contributionType: '',
+            contributionInfo: {},
         }
     }
 
@@ -50,6 +52,10 @@ class CommentComponent extends Component {
         });
 
         this.getReactionType();
+
+        this.getContributionType();
+
+        this.getContributionInfo();
     }
 
     fetchComment = () => {
@@ -66,6 +72,18 @@ class CommentComponent extends Component {
     getReactionType = () => {
         axios.get('/api/comments/' + this.state.commentId + '/user-reaction').then((response) => {
             this.setState({reactionType: response.data});
+        });
+    }
+
+    getContributionType = () => {
+        axios.get('/api/comments/' + this.state.commentId + '/user-contribution').then((response) => {
+            this.setState({contributionType: response.data});
+        });
+    }
+
+    getContributionInfo = () => {
+        axios.get('/api/comments/' + this.state.commentId + '/contributions').then((response) => {
+            this.setState({contributionInfo: response.data});
         });
     }
 
@@ -153,6 +171,18 @@ class CommentComponent extends Component {
         });
     }
 
+    contribute = (e) => {
+        let rev = e.target.getAttribute("data-name");
+        axios.post('/api/contribute', {
+            comment_id: this.state.commentId,
+            contribution_type: rev
+        }).then(() => {
+            this.fetchComment();
+            this.getContributionType();
+            this.getContributionInfo();
+        });
+    }
+
     report = () => {
         swal.fire({
             title: 'Are you sure you want to report to this comment?',
@@ -233,16 +263,16 @@ class CommentComponent extends Component {
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <div className="reaction_holder" data-name="helpful" data-type="1">
+                                                    <div className={(this.state.contributionType == "Helpful") ? ("reaction_holder active") : ("reaction_holder")} data-name="Helpful" onClick={this.contribute}>
                                                         <i className="far fa-thumbs-up"></i><br />
-                                                        <span className="reaction_counter">0</span>
+                                                        <span className="reaction_counter">{this.state.contributionInfo.helpfulness}</span>
                                                         <p className="reaction_name">Yes</p>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="reaction_holder active" data-name="unhelpful" data-type="2">
+                                                    <div className={(this.state.contributionType == "Unhelpful") ? ("reaction_holder active") : ("reaction_holder")} data-name="Unhelpful" onClick={this.contribute}>
                                                         <i className="far fa-thumbs-down"></i><br />
-                                                        <span className="reaction_counter">0</span>
+                                                        <span className="reaction_counter">{this.state.contributionInfo.unhelpfulness}</span>
                                                         <p className="reaction_name">Not so</p>
                                                     </div>
                                                 </td>

@@ -39,6 +39,8 @@ class ShowPostComponent extends Component {
             postId: props.postId,
             replyDescription: '',
             reportDescription: '',
+            contributionType: '',
+            contributionInfo: {},
             reactionType: '',
         }
     }
@@ -51,6 +53,10 @@ class ShowPostComponent extends Component {
         });
         
         this.fetchComments();
+
+        this.getContributionType();
+
+        this.getContributionInfo();
 
         this.getReactionType();
     }
@@ -70,6 +76,18 @@ class ShowPostComponent extends Component {
     fetchComments = () => {
         axios.get('/api/posts/' + this.state.postId + '/comments').then((response) => {
             this.setState({comments: response.data});
+        });
+    }
+
+    getContributionType = () => {
+        axios.get('/api/posts/' + this.state.postId + '/user-contribution').then((response) => {
+            this.setState({contributionType: response.data});
+        });
+    }
+
+    getContributionInfo = () => {
+        axios.get('/api/posts/' + this.state.postId + '/contributions').then((response) => {
+            this.setState({contributionInfo: response.data});
         });
     }
 
@@ -114,6 +132,18 @@ class ShowPostComponent extends Component {
         }).then(() => {
             this.getPost();
             this.getReactionType();
+        });
+    }
+
+    contribute = (e) => {
+        let rev = e.target.getAttribute("data-name");
+        axios.post('/api/contribute', {
+            post_id: this.state.postId,
+            contribution_type: rev
+        }).then(() => {
+            this.getPost();
+            this.getContributionType();
+            this.getContributionInfo();
         });
     }
 
@@ -169,8 +199,7 @@ class ShowPostComponent extends Component {
                                                 <div className="love"><i className="far fa-grin-hearts"></i> {this.state.post.total_love}</div>
                                                 <div className="wow"><i className="far fa-grin-stars"></i> {this.state.post.total_wow}</div>
                                                 <div className="haha"><i className="far fa-laugh-squint"></i> {this.state.post.total_haha}</div>
-                                                <div className="angry"><i className="far fa-angry"></i> {this.state.post.total_angry}</div>
-                                                <div className="comments meta-last"><i className="icon-comment"></i>{23} comments</div>
+                                                <div className="angry meta-last"><i className="far fa-angry"></i> {this.state.post.total_angry}</div>
                                             </div>
                                         </div>
                                         <div className="post-body" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.post.description)}}></div>
@@ -187,16 +216,16 @@ class ShowPostComponent extends Component {
                                                         <tbody>
                                                             <tr>
                                                                 <td>
-                                                                    <div className="reaction_holder" data-name="helpful" data-type="1">
+                                                                    <div className={(this.state.contributionType == "Helpful") ? ("reaction_holder active") : ("reaction_holder")} data-name="Helpful" onClick={this.contribute}>
                                                                         <i className="far fa-thumbs-up"></i><br />
-                                                                        <span className="reaction_counter">0</span>
+                                                                        <span className="reaction_counter">{this.state.contributionInfo.helpfulness}</span>
                                                                         <p className="reaction_name">Yes</p>
                                                                     </div>
                                                                 </td>
                                                                 <td>
-                                                                    <div className="reaction_holder active" data-name="unhelpful" data-type="2">
+                                                                    <div className={(this.state.contributionType == "Unhelpful") ? ("reaction_holder active") : ("reaction_holder")} data-name="Unhelpful" onClick={this.contribute}>
                                                                         <i className="far fa-thumbs-down"></i><br />
-                                                                        <span className="reaction_counter">0</span>
+                                                                        <span className="reaction_counter">{this.state.contributionInfo.unhelpfulness}</span>
                                                                         <p className="reaction_name">Not so</p>
                                                                     </div>
                                                                 </td>
@@ -271,7 +300,7 @@ class ShowPostComponent extends Component {
                                         </div>
                                         <div className="post-comments">
                                             <header>
-                                                <h3 className="h6">Post Comments<span className="no-of-comments">(3)</span></h3>
+                                                <h3 className="h6">Post Comments</h3>
                                             </header>
                                             {this.state.comments.map((comment) =>
                                                 <LazyLoad key={comment.id}>

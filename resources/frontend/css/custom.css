@@ -207,11 +207,11 @@
     margin-bottom: 1rem;
 }
 
-.reaction_holder[data-name="helpful"] {
+.reaction_holder[data-name="Helpful"] {
     color: #317cc8;
 }
 
-.reaction_holder[data-name="unhelpful"] {
+.reaction_holder[data-name="Unhelpful"] {
     color: #2d3338;
 }
 
@@ -231,11 +231,11 @@
     color: #ff0000;
 }
 
-.reaction_holder[data-name="helpful"].active {
+.reaction_holder[data-name="Helpful"].active {
     box-shadow: 0 1px 5px 0 rgba(0, 17, 255, 0.5);
 }
 
-.reaction_holder[data-name="unhelpful"].active {
+.reaction_holder[data-name="Unhelpful"].active {
     box-shadow: 0 1px 5px 0 rgba(32, 28, 30, 0.5);
 }
 

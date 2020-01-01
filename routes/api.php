@@ -79,6 +79,13 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/posts/{id}/user-reaction', ['uses' => 'API\ReactionAPIController@getUserPostReaction']);
     Route::get('/comments/{id}/user-reaction', ['uses' => 'API\ReactionAPIController@getUserCommentReaction']);
     Route::post('/react', ['uses' => 'API\ReactionAPIController@addReaction']);
+
+    // Contributions
+    Route::get('/posts/{id}/user-contribution', ['uses' => 'API\ContributionAPIController@getUserPostContribution']);
+    Route::get('/comments/{id}/user-contribution', ['uses' => 'API\ContributionAPIController@getUserCommentContribution']);
+    Route::get('/posts/{id}/contributions', ['uses' => 'API\ContributionAPIController@getPostContributionInfo']);
+    Route::get('/comments/{id}/contributions', ['uses' => 'API\ContributionAPIController@getCommentContributionInfo']);
+    Route::post('/contribute', ['uses' => 'API\ContributionAPIController@addContribution']);
 });
 
 Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);
