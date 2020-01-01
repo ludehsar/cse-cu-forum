@@ -37,6 +37,7 @@ class CommentComponent extends Component {
             editDescription: '',
             replyDescription: '',
             reportDescription: '',
+            reactionType: '',
         }
     }
 
@@ -47,6 +48,8 @@ class CommentComponent extends Component {
         axios.get('/api/user').then((response) => {
             this.setState({selfId: response.data.id});
         });
+
+        this.getReactionType();
     }
 
     fetchComment = () => {
@@ -58,6 +61,12 @@ class CommentComponent extends Component {
         });
 
         this.fetchReplies();
+    }
+
+    getReactionType = () => {
+        axios.get('/api/comments/' + this.state.commentId + '/user-reaction').then((response) => {
+            this.setState({reactionType: response.data});
+        });
     }
 
     fetchReplies = () => {
@@ -130,6 +139,17 @@ class CommentComponent extends Component {
 
         this.setState({
             reportDescription: rev
+        });
+    }
+
+    react = (e) => {
+        let rev = e.target.getAttribute("data-name");
+        axios.post('/api/react', {
+            comment_id: this.state.commentId,
+            reaction_type: rev
+        }).then(() => {
+            this.fetchComment();
+            this.getReactionType();
         });
     }
 
@@ -236,28 +256,28 @@ class CommentComponent extends Component {
                                         <tbody>
                                             <tr>
                                                 <td>
-                                                    <div className="reaction_holder" data-name="love" data-type="3">
+                                                    <div className={(this.state.reactionType == "Love") ? ("reaction_holder active") : ("reaction_holder")} data-name="Love" onClick={this.react}>
                                                         <i className="far fa-grin-hearts"></i><br />
                                                         <span className="reaction_counter">{this.state.comment.total_love}</span>
                                                         <p className="reaction_name">Love</p>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="reaction_holder active" data-name="wow" data-type="4">
+                                                    <div className={(this.state.reactionType == "Wow") ? ("reaction_holder active") : ("reaction_holder")} data-name="Wow" onClick={this.react}>
                                                         <i className="far fa-grin-stars"></i><br />
                                                         <span className="reaction_counter">{this.state.comment.total_wow}</span>
                                                         <p className="reaction_name">Wow</p>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="reaction_holder" data-name="haha" data-type="5">
+                                                    <div className={(this.state.reactionType == "Haha") ? ("reaction_holder active") : ("reaction_holder")} data-name="Haha" onClick={this.react}>
                                                         <i className="far fa-laugh-squint"></i><br />
                                                         <span className="reaction_counter">{this.state.comment.total_haha}</span>
                                                         <p className="reaction_name">Haha</p>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="reaction_holder" data-name="angry" data-type="6">
+                                                    <div className={(this.state.reactionType == "Angry") ? ("reaction_holder active") : ("reaction_holder")} data-name="Angry" onClick={this.react}>
                                                         <i className="far fa-angry"></i><br />
                                                         <span className="reaction_counter">{this.state.comment.total_angry}</span>
                                                         <p className="reaction_name">Angry</p>

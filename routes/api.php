@@ -74,6 +74,11 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Reports
     Route::post('/reports/add', ['uses' => 'API\ReportAPIController@addReport']);
+
+    // Reactions
+    Route::get('/posts/{id}/user-reaction', ['uses' => 'API\ReactionAPIController@getUserPostReaction']);
+    Route::get('/comments/{id}/user-reaction', ['uses' => 'API\ReactionAPIController@getUserCommentReaction']);
+    Route::post('/react', ['uses' => 'API\ReactionAPIController@addReaction']);
 });
 
 Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);

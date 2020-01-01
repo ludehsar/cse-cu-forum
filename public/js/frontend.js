@@ -97832,6 +97832,14 @@ function (_Component) {
       _this.fetchReplies();
     });
 
+    _defineProperty(_assertThisInitialized(_this), "getReactionType", function () {
+      axios.get('/api/comments/' + _this.state.commentId + '/user-reaction').then(function (response) {
+        _this.setState({
+          reactionType: response.data
+        });
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "fetchReplies", function () {
       axios.get('/api/comments/' + _this.state.commentId + '/replies').then(function (response) {
         _this.setState({
@@ -97906,6 +97914,18 @@ function (_Component) {
       });
     });
 
+    _defineProperty(_assertThisInitialized(_this), "react", function (e) {
+      var rev = e.target.getAttribute("data-name");
+      axios.post('/api/react', {
+        comment_id: _this.state.commentId,
+        reaction_type: rev
+      }).then(function () {
+        _this.fetchComment();
+
+        _this.getReactionType();
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "report", function () {
       swal.fire({
         title: 'Are you sure you want to report to this comment?',
@@ -97960,7 +97980,8 @@ function (_Component) {
       user: {},
       editDescription: '',
       replyDescription: '',
-      reportDescription: ''
+      reportDescription: '',
+      reactionType: ''
     };
     return _this;
   }
@@ -97983,8 +98004,9 @@ function (_Component) {
                     selfId: response.data.id
                   });
                 });
+                this.getReactionType();
 
-              case 2:
+              case 3:
               case "end":
                 return _context.stop();
             }
@@ -98121,9 +98143,9 @@ function (_Component) {
       }, "Express your feelings regarding this comment"), React.createElement("table", {
         className: "table reaction_table"
       }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "love",
-        "data-type": "3"
+        className: this.state.reactionType == "Love" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Love",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-grin-hearts"
       }), React.createElement("br", null), React.createElement("span", {
@@ -98131,9 +98153,9 @@ function (_Component) {
       }, this.state.comment.total_love), React.createElement("p", {
         className: "reaction_name"
       }, "Love"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder active",
-        "data-name": "wow",
-        "data-type": "4"
+        className: this.state.reactionType == "Wow" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Wow",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-grin-stars"
       }), React.createElement("br", null), React.createElement("span", {
@@ -98141,9 +98163,9 @@ function (_Component) {
       }, this.state.comment.total_wow), React.createElement("p", {
         className: "reaction_name"
       }, "Wow"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "haha",
-        "data-type": "5"
+        className: this.state.reactionType == "Haha" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Haha",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-laugh-squint"
       }), React.createElement("br", null), React.createElement("span", {
@@ -98151,9 +98173,9 @@ function (_Component) {
       }, this.state.comment.total_haha), React.createElement("p", {
         className: "reaction_name"
       }, "Haha"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "angry",
-        "data-type": "6"
+        className: this.state.reactionType == "Angry" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Angry",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-angry"
       }), React.createElement("br", null), React.createElement("span", {
@@ -100407,10 +100429,37 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(ShowPostComponent).call(this, props));
 
+    _defineProperty(_assertThisInitialized(_this), "getPost", function () {
+      axios.get('/api/posts/' + _this.state.postId).then(function (response) {
+        _this.setState({
+          post: response.data
+        });
+
+        axios.get('/api/categories/' + _this.state.post.category_id).then(function (res2) {
+          _this.setState({
+            category: res2.data
+          });
+        });
+        axios.get('/api/users/' + _this.state.post.user_id).then(function (res2) {
+          _this.setState({
+            user: res2.data
+          });
+        });
+      });
+    });
+
     _defineProperty(_assertThisInitialized(_this), "fetchComments", function () {
       axios.get('/api/posts/' + _this.state.postId + '/comments').then(function (response) {
         _this.setState({
           comments: response.data
+        });
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "getReactionType", function () {
+      axios.get('/api/posts/' + _this.state.postId + '/user-reaction').then(function (response) {
+        _this.setState({
+          reactionType: response.data
         });
       });
     });
@@ -100441,6 +100490,18 @@ function (_Component) {
 
       _this.setState({
         reportDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "react", function (e) {
+      var rev = e.target.getAttribute("data-name");
+      axios.post('/api/react', {
+        post_id: _this.state.postId,
+        reaction_type: rev
+      }).then(function () {
+        _this.getPost();
+
+        _this.getReactionType();
       });
     });
 
@@ -100498,7 +100559,8 @@ function (_Component) {
       comments: [],
       postId: props.postId,
       replyDescription: '',
-      reportDescription: ''
+      reportDescription: '',
+      reactionType: ''
     };
     return _this;
   }
@@ -100515,30 +100577,16 @@ function (_Component) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                axios.get('/api/posts/' + this.state.postId).then(function (response) {
-                  _this2.setState({
-                    post: response.data
-                  });
-
-                  axios.get('/api/categories/' + _this2.state.post.category_id).then(function (res2) {
-                    _this2.setState({
-                      category: res2.data
-                    });
-                  });
-                  axios.get('/api/users/' + _this2.state.post.user_id).then(function (res2) {
-                    _this2.setState({
-                      user: res2.data
-                    });
-                  });
-                });
+                this.getPost();
                 axios.get('/api/posts/' + this.state.postId + '/tags').then(function (response) {
                   _this2.setState({
                     tags: response.data
                   });
                 });
                 this.fetchComments();
+                this.getReactionType();
 
-              case 3:
+              case 4:
               case "end":
                 return _context.stop();
             }
@@ -100664,9 +100712,9 @@ function (_Component) {
       }, "Express your feelings regarding this post"), React.createElement("table", {
         className: "table reaction_table"
       }, React.createElement("tbody", null, React.createElement("tr", null, React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "love",
-        "data-type": "3"
+        className: this.state.reactionType == "Love" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Love",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-grin-hearts"
       }), React.createElement("br", null), React.createElement("span", {
@@ -100674,9 +100722,9 @@ function (_Component) {
       }, this.state.post.total_love), React.createElement("p", {
         className: "reaction_name"
       }, "Love"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder active",
-        "data-name": "wow",
-        "data-type": "4"
+        className: this.state.reactionType == "Wow" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Wow",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-grin-stars"
       }), React.createElement("br", null), React.createElement("span", {
@@ -100684,9 +100732,9 @@ function (_Component) {
       }, this.state.post.total_wow), React.createElement("p", {
         className: "reaction_name"
       }, "Wow"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "haha",
-        "data-type": "5"
+        className: this.state.reactionType == "Haha" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Haha",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-laugh-squint"
       }), React.createElement("br", null), React.createElement("span", {
@@ -100694,9 +100742,9 @@ function (_Component) {
       }, this.state.post.total_haha), React.createElement("p", {
         className: "reaction_name"
       }, "Haha"))), React.createElement("td", null, React.createElement("div", {
-        className: "reaction_holder",
-        "data-name": "angry",
-        "data-type": "6"
+        className: this.state.reactionType == "Angry" ? "reaction_holder active" : "reaction_holder",
+        "data-name": "Angry",
+        onClick: this.react
       }, React.createElement("i", {
         className: "far fa-angry"
       }), React.createElement("br", null), React.createElement("span", {

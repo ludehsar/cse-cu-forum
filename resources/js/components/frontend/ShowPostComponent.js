@@ -39,10 +39,23 @@ class ShowPostComponent extends Component {
             postId: props.postId,
             replyDescription: '',
             reportDescription: '',
+            reactionType: '',
         }
     }
 
     async componentDidMount() {
+        this.getPost();
+
+        axios.get('/api/posts/' + this.state.postId + '/tags').then((response) => {
+            this.setState({tags: response.data});
+        });
+        
+        this.fetchComments();
+
+        this.getReactionType();
+    }
+
+    getPost = () => {
         axios.get('/api/posts/' + this.state.postId).then((response) => {
             this.setState({post: response.data});
             axios.get('/api/categories/' + this.state.post.category_id).then((res2) => {
@@ -52,16 +65,17 @@ class ShowPostComponent extends Component {
                 this.setState({user: res2.data});
             });
         });
-        axios.get('/api/posts/' + this.state.postId + '/tags').then((response) => {
-            this.setState({tags: response.data});
-        });
-        
-        this.fetchComments();
     }
 
     fetchComments = () => {
         axios.get('/api/posts/' + this.state.postId + '/comments').then((response) => {
             this.setState({comments: response.data});
+        });
+    }
+
+    getReactionType = () => {
+        axios.get('/api/posts/' + this.state.postId + '/user-reaction').then((response) => {
+            this.setState({reactionType: response.data});
         });
     }
 
@@ -89,6 +103,17 @@ class ShowPostComponent extends Component {
 
         this.setState({
             reportDescription: rev
+        });
+    }
+
+    react = (e) => {
+        let rev = e.target.getAttribute("data-name");
+        axios.post('/api/react', {
+            post_id: this.state.postId,
+            reaction_type: rev
+        }).then(() => {
+            this.getPost();
+            this.getReactionType();
         });
     }
 
@@ -185,28 +210,28 @@ class ShowPostComponent extends Component {
                                                         <tbody>
                                                             <tr>
                                                                 <td>
-                                                                    <div className="reaction_holder" data-name="love" data-type="3">
+                                                                    <div className={(this.state.reactionType == "Love") ? ("reaction_holder active") : ("reaction_holder")} data-name="Love" onClick={this.react}>
                                                                         <i className="far fa-grin-hearts"></i><br />
                                                                         <span className="reaction_counter">{this.state.post.total_love}</span>
                                                                         <p className="reaction_name">Love</p>
                                                                     </div>
                                                                 </td>
                                                                 <td>
-                                                                    <div className="reaction_holder active" data-name="wow" data-type="4">
+                                                                    <div className={(this.state.reactionType == "Wow") ? ("reaction_holder active") : ("reaction_holder")} data-name="Wow" onClick={this.react}>
                                                                         <i className="far fa-grin-stars"></i><br />
                                                                         <span className="reaction_counter">{this.state.post.total_wow}</span>
                                                                         <p className="reaction_name">Wow</p>
                                                                     </div>
                                                                 </td>
                                                                 <td>
-                                                                    <div className="reaction_holder" data-name="haha" data-type="5">
+                                                                    <div className={(this.state.reactionType == "Haha") ? ("reaction_holder active") : ("reaction_holder")} data-name="Haha" onClick={this.react}>
                                                                         <i className="far fa-laugh-squint"></i><br />
                                                                         <span className="reaction_counter">{this.state.post.total_haha}</span>
                                                                         <p className="reaction_name">Haha</p>
                                                                     </div>
                                                                 </td>
                                                                 <td>
-                                                                    <div className="reaction_holder" data-name="angry" data-type="6">
+                                                                    <div className={(this.state.reactionType == "Angry") ? ("reaction_holder active") : ("reaction_holder")} data-name="Angry" onClick={this.react}>
                                                                         <i className="far fa-angry"></i><br />
                                                                         <span className="reaction_counter">{this.state.post.total_angry}</span>
                                                                         <p className="reaction_name">Angry</p>

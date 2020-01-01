@@ -215,19 +215,19 @@
     color: #2d3338;
 }
 
-.reaction_holder[data-name="love"] {
+.reaction_holder[data-name="Love"] {
     color: #d3619f;
 }
 
-.reaction_holder[data-name="wow"] {
+.reaction_holder[data-name="Wow"] {
     color: #d2d433;
 }
 
-.reaction_holder[data-name="haha"] {
+.reaction_holder[data-name="Haha"] {
     color: #73f707;
 }
 
-.reaction_holder[data-name="angry"] {
+.reaction_holder[data-name="Angry"] {
     color: #ff0000;
 }
 
@@ -239,19 +239,19 @@
     box-shadow: 0 1px 5px 0 rgba(32, 28, 30, 0.5);
 }
 
-.reaction_holder[data-name="love"].active {
+.reaction_holder[data-name="Love"].active {
     box-shadow: 0 1px 5px 0 rgba(255, 0, 221, 0.5);
 }
 
-.reaction_holder[data-name="wow"].active {
+.reaction_holder[data-name="Wow"].active {
     box-shadow: 0 1px 5px 0 rgba(238, 255, 0, 0.5);
 }
 
-.reaction_holder[data-name="haha"].active {
+.reaction_holder[data-name="Haha"].active {
     box-shadow: 0 1px 5px 0 rgba(9, 255, 1, 0.5);
 }
 
-.reaction_holder[data-name="angry"].active {
+.reaction_holder[data-name="Angry"].active {
     box-shadow: 0 1px 5px 0 rgba(255, 0, 0, 0.5);
 }
 
