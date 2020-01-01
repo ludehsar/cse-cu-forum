@@ -37,7 +37,8 @@ class ShowPostComponent extends Component {
             user: {},
             comments: [],
             postId: props.postId,
-            replyDescription: ''
+            replyDescription: '',
+            reportDescription: '',
         }
     }
 
@@ -84,11 +85,39 @@ class ShowPostComponent extends Component {
     }
 
     handleReport = (e) => {
+        let rev = e.target.value;
 
+        this.setState({
+            reportDescription: rev
+        });
     }
 
     report = () => {
-
+        swal.fire({
+            title: 'Are you sure you want to report to this post?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Report!'
+        }).then((result) => {
+            if (result.value) {
+                axios.post('/api/reports/add', {
+                    post_id: this.state.postId,
+                    description: this.state.reportDescription
+                }).then(() => {
+                    swal.fire(
+                        'Thanks for reporting!',
+                        'Your contribution will help this community to maintain a healthy society',
+                        'success'
+                    ).then(() => {
+                        this.setState({
+                            reportDescription: ''
+                        });
+                    });
+                });
+            }
+        });
     }
 
     render() {

@@ -64,10 +64,10 @@
     </div>
 
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <router-link class="nav-link" to="/admin/reports">
             <i class="fas fa-fw fa-bug"></i>
             <span>Reports</span>
-        </a>
+        </router-link>
     </li>
 
     <!-- Divider -->

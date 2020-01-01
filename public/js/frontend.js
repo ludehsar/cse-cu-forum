@@ -97898,9 +97898,37 @@ function (_Component) {
       });
     });
 
-    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
+    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {
+      var rev = e.target.value;
 
-    _defineProperty(_assertThisInitialized(_this), "report", function () {});
+      _this.setState({
+        reportDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "report", function () {
+      swal.fire({
+        title: 'Are you sure you want to report to this comment?',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, Report!'
+      }).then(function (result) {
+        if (result.value) {
+          axios.post('/api/reports/add', {
+            comment_id: _this.state.commentId,
+            description: _this.state.reportDescription
+          }).then(function () {
+            swal.fire('Thanks for reporting!', 'Your contribution will help this community to maintain a healthy society', 'success').then(function () {
+              _this.setState({
+                reportDescription: ''
+              });
+            });
+          });
+        }
+      });
+    });
 
     _this.state = {
       editor_api_key: "5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft",
@@ -97931,7 +97959,8 @@ function (_Component) {
       replies: [],
       user: {},
       editDescription: '',
-      replyDescription: ''
+      replyDescription: '',
+      reportDescription: ''
     };
     return _this;
   }
@@ -100407,9 +100436,37 @@ function (_Component) {
       });
     });
 
-    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {});
+    _defineProperty(_assertThisInitialized(_this), "handleReport", function (e) {
+      var rev = e.target.value;
 
-    _defineProperty(_assertThisInitialized(_this), "report", function () {});
+      _this.setState({
+        reportDescription: rev
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "report", function () {
+      swal.fire({
+        title: 'Are you sure you want to report to this post?',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, Report!'
+      }).then(function (result) {
+        if (result.value) {
+          axios.post('/api/reports/add', {
+            post_id: _this.state.postId,
+            description: _this.state.reportDescription
+          }).then(function () {
+            swal.fire('Thanks for reporting!', 'Your contribution will help this community to maintain a healthy society', 'success').then(function () {
+              _this.setState({
+                reportDescription: ''
+              });
+            });
+          });
+        }
+      });
+    });
 
     _this.state = {
       editor_api_key: "5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft",
@@ -100440,7 +100497,8 @@ function (_Component) {
       user: {},
       comments: [],
       postId: props.postId,
-      replyDescription: ''
+      replyDescription: '',
+      reportDescription: ''
     };
     return _this;
   }

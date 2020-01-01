@@ -123,6 +123,7 @@ const routes = [
     { path: '/admin/comments', component: require('./components/backend/CommentComponent.vue').default },
     { path: '/admin/comments/view/:commentId', component: require('./components/backend/ViewCommentComponent.vue').default },
     { path: '/admin/comments/edit/:commentId', component: require('./components/backend/EditCommentComponent.vue').default },
+    { path: '/admin/reports', component: require('./components/backend/ReportComponent.vue').default },
 ];
 
 const router = new VueRouter({

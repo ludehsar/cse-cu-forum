@@ -37,6 +37,10 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::put('/users/unblock/{id}', ['uses' => 'API\UserAPIController@unblockUser']);
         Route::put('/users/{id}/sft', ['uses' => 'API\UserAPIController@updateStudentFromTeacher']);
         Route::put('/users/{id}/tfs', ['uses' => 'API\UserAPIController@updateTeacherFromStudent']);
+
+        // Reports
+        Route::get('/reports/all', ['uses' => 'API\ReportAPIController@getAllReports']);
+        Route::delete('/reports/delete/{id}', ['uses' => 'API\ReportAPIController@deleteReport']);
     });
     
     // Posts
@@ -67,6 +71,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('/user/change_password', ['uses' => 'API\UserAPIController@updatePassword']);
     Route::post('/user/change_profile', ['uses' => 'API\UserAPIController@updateProfile']);
     Route::post('/user/change_university_profile', ['uses' => 'API\UserAPIController@updateUniversityProfile']);
+
+    // Reports
+    Route::post('/reports/add', ['uses' => 'API\ReportAPIController@addReport']);
 });
 
 Route::get('/categories/{id}', ['uses' => 'API\CategoryAPIController@getCategory']);

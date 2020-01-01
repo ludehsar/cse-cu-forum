@@ -36,6 +36,7 @@ class CommentComponent extends Component {
             user: {},
             editDescription: '',
             replyDescription: '',
+            reportDescription: '',
         }
     }
 
@@ -125,11 +126,39 @@ class CommentComponent extends Component {
     }
 
     handleReport = (e) => {
-        
+        let rev = e.target.value;
+
+        this.setState({
+            reportDescription: rev
+        });
     }
 
     report = () => {
-
+        swal.fire({
+            title: 'Are you sure you want to report to this comment?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Report!'
+        }).then((result) => {
+            if (result.value) {
+                axios.post('/api/reports/add', {
+                    comment_id: this.state.commentId,
+                    description: this.state.reportDescription
+                }).then(() => {
+                    swal.fire(
+                        'Thanks for reporting!',
+                        'Your contribution will help this community to maintain a healthy society',
+                        'success'
+                    ).then(() => {
+                        this.setState({
+                            reportDescription: ''
+                        });
+                    });
+                });
+            }
+        });
     }
 
     render() {
