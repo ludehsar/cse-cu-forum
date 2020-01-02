@@ -98426,7 +98426,7 @@ function SinglePostReview(props) {
   }, React.createElement("div", {
     className: "category"
   }, React.createElement("a", {
-    href: "#"
+    href: "/posts?search=" + props.category_slug
   }, props.category_name)), React.createElement("a", {
     href: "/posts/" + props.slug
   }, React.createElement("h2", {
@@ -98562,6 +98562,7 @@ function (_Component) {
         }, React.createElement(SinglePostReview, {
           key: post.id,
           category_name: post.category_name,
+          category_slug: post.category_slug,
           slug: post.slug,
           title: post.title,
           subtitle: post.subtitle,
@@ -99475,7 +99476,7 @@ function (_Component) {
         }, React.createElement("div", {
           className: "category"
         }, React.createElement("a", {
-          href: "#"
+          href: "/posts?search=" + post.category_slug
         }, post.category_name)), React.createElement("a", {
           href: "/posts/" + post.slug
         }, React.createElement("h2", {
@@ -100686,7 +100687,7 @@ function (_Component) {
       }, React.createElement("div", {
         className: "category"
       }, React.createElement("a", {
-        href: "#"
+        href: "/posts?search=" + this.state.category.slug
       }, this.state.category.name))), React.createElement("h1", null, this.state.post.title), React.createElement("div", {
         className: "post-footer d-flex align-items-center flex-column flex-sm-row"
       }, React.createElement("a", {
@@ -100735,7 +100736,7 @@ function (_Component) {
         className: "post-tags"
       }, this.state.tags.map(function (tag) {
         return React.createElement("a", {
-          href: "#",
+          href: "/posts?search=" + tag.slug,
           key: tag.id,
           className: "tag"
         }, "#", tag.name);

@@ -2,15 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\Post;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeStaticController extends Controller
 {
     public function index()
     {
         return view('frontend.posts.index');
+    }
+
+    public function getSearchResults(Request $request)
+    {
+        $frontendPosts = Post::search($request->search)->paginate(20);
+
+        $categories = Category::get();
+        $tags = Tag::get();
+        return view('frontend.posts.search', compact('frontendPosts', 'categories', 'tags'));
     }
 
     public function adminIndex()

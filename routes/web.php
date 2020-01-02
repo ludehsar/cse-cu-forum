@@ -12,6 +12,7 @@
 */
 
 Route::get('/', ['uses' => 'HomeStaticController@index', 'as' => 'home']);
+Route::get('/posts', ['uses' => 'HomeStaticController@getSearchResults', 'as' => 'search']);
 
 Route::get('/contact', ['uses' => 'HomeStaticController@showContactForm', 'as' => 'contact']);
 

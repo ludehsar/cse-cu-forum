@@ -185,7 +185,7 @@ class ShowPostComponent extends Component {
                                 <div className="post-single">
                                     <div className="post-details">
                                         <div className="post-meta d-flex justify-content-between">
-                                            <div className="category"><a href="#">{this.state.category.name}</a></div>
+                                            <div className="category"><a href={"/posts?search=" + this.state.category.slug}>{this.state.category.name}</a></div>
                                         </div>
                                         <h1>{this.state.post.title}</h1>
                                         <div className="post-footer d-flex align-items-center flex-column flex-sm-row">
@@ -205,7 +205,7 @@ class ShowPostComponent extends Component {
                                         <div className="post-body" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(this.state.post.description)}}></div>
                                         <div className="post-tags">
                                             {this.state.tags.map((tag) => 
-                                                <a href="#" key={tag.id} className="tag">#{tag.name}</a>
+                                                <a href={"/posts?search=" + tag.slug} key={tag.id} className="tag">#{tag.name}</a>
                                             )}
                                         </div>
                                         <div className="posts-nav">

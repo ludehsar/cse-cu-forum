@@ -256,7 +256,7 @@ class ProfileComponent extends Component {
                                                                 </div>
                                                             )}
                                                             <header className="post-header">
-                                                                <div className="category"><a href="#">{post.category_name}</a></div>
+                                                                <div className="category"><a href={"/posts?search=" + post.category_slug}>{post.category_name}</a></div>
                                                                 <a href={"/posts/" + post.slug}><h2 className="h4">{post.title}</h2></a>
                                                             </header>
                                                             <p>{post.subtitle}</p>

@@ -7,10 +7,12 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Comment;
+use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    use Searchable;
     /**
      * The table associated with the model.
      *
@@ -64,5 +66,30 @@ class Post extends Model
             $this->comments()->delete();
             parent::delete();
         });
+    }
+
+    public function shouldBeSearchable()
+    {
+        return $this->is_published && $this->user->is_verified && !$this->user->is_blocked;
+    }
+
+    public function toSearchableArray()
+    {
+        $array = $this->toArray();
+
+        $array['category_name'] = $this->category->name;
+        $array['category_slug'] = $this->category->slug;
+
+        $array['username'] = $this->user['username'];
+        $array['user_profile_picture_url'] = $this->user['profile_picture_url'];
+        $array['user_full_name'] = $this->user['name'];
+
+        $array['total_comments'] = $this->comments->count();
+
+        $array['tags'] = $this->tags->map(function ($tag) {
+            return $tag['name'];
+        })->toArray();
+
+        return $array;
     }
 }

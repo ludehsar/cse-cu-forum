@@ -5,7 +5,7 @@ function SinglePostReview(props) {
                 <div className="text-inner d-flex align-items-center">
                     <div className="content">
                         <header className="post-header">
-                            <div className="category"><a href="#">{props.category_name}</a></div>
+                            <div className="category"><a href={"/posts?search=" + props.category_slug}>{props.category_name}</a></div>
                             <a href={"/posts/" + props.slug}><h2 className="h4">{props.title}</h2></a>
                         </header>
                         <p>{props.subtitle}</p>
@@ -64,6 +64,7 @@ class HomepageComponent extends Component {
                             <SinglePostReview
                                 key={post.id}
                                 category_name={post.category_name}
+                                category_slug={post.category_slug}
                                 slug={post.slug}
                                 title={post.title}
                                 subtitle={post.subtitle}

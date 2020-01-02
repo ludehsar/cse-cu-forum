@@ -103,18 +103,18 @@ class PostAPIController extends Controller
         $slug = $this->createSlug($request->title);
 
         $user_id = auth('api')->user()->id;
-        
-        Post::create([
-            'title' => $request->title,
-            'subtitle' => $request->subtitle,
-            'category_id' => $request->category,
-            'user_id' => $user_id,
-            'slug' => $slug,
-            'description' => $request->description,
-            'is_published' => $isPublished,
-        ]);
 
-        $post = Post::where('slug', $slug)->first();
+        $post = new Post;
+
+        $post->title = $request->title;
+        $post->subtitle = $request->subtitle;
+        $post->category_id = $request->category;
+        $post->user_id = $user_id;
+        $post->slug = $slug;
+        $post->description = $request->description;
+        $post->is_published = $isPublished;
+        
+        $post->save();
 
         $post->tags()->sync($request->tags);
 
@@ -144,14 +144,14 @@ class PostAPIController extends Controller
         $slug = $this->createSlug($request->title, $id);
 
         if (auth('api')->user()->is_admin || auth('api')->user()->id == $post->user_id) {
-            $post->update([
-                'title' => $request->title,
-                'subtitle' => $request->subtitle,
-                'category_id' => $request->category,
-                'slug' => $slug,
-                'description' => $request->description,
-                'is_published' => $isPublished,
-            ]);
+            $post->title = $request->title;
+            $post->subtitle = $request->subtitle;
+            $post->category_id = $request->category;
+            $post->slug = $slug;
+            $post->description = $request->description;
+            $post->is_published = $isPublished;
+            
+            $post->update();
 
             $post->tags()->sync($request->tags);
         }
@@ -170,6 +170,7 @@ class PostAPIController extends Controller
 
         if (auth('api')->user()->is_admin || auth('api')->user()->id == $post->user_id) {
             $post->tags()->detach();
+
             $post->delete();
         }
 
