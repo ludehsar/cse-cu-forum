@@ -41,6 +41,11 @@ Route::group(['middleware' => 'auth:api'], function () {
         // Reports
         Route::get('/reports/all', ['uses' => 'API\ReportAPIController@getAllReports']);
         Route::delete('/reports/delete/{id}', ['uses' => 'API\ReportAPIController@deleteReport']);
+
+        // Dashboard
+        Route::get('/dashboard/get-all', ['uses' => 'API\DashboardAPIController@getAllTotals']);
+        Route::get('/dashboard/user-chart-dataset', ['uses' => 'API\DashboardAPIController@getUserDataset']);
+        Route::get('/dashboard/post-chart-dataset', ['uses' => 'API\DashboardAPIController@getPostDataset']);
     });
     
     // Posts
