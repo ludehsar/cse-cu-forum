@@ -55,7 +55,7 @@ class PostAPIController extends Controller
     {
         $posts = FrontendPost::latest();
 
-        return response($posts->paginate(20), 200);
+        return response($posts->paginate(5), 200);
     }
 
     /**

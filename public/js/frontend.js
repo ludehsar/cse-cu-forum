@@ -99221,7 +99221,7 @@ function (_Component) {
           switch (_context.prev = _context.next) {
             case 0:
               pageNumber = _args.length > 0 && _args[0] !== undefined ? _args[0] : 1;
-              axios.get('/api/users/' + _this.state.userId + '/posts').then(function (response) {
+              axios.get('/api/users/' + _this.state.userId + '/posts?page=' + pageNumber).then(function (response) {
                 _this.setState({
                   posts: response.data.data,
                   activePage: response.data.current_page,

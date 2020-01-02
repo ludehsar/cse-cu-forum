@@ -20,6 +20,7 @@
         <link rel="stylesheet" href="{{ asset('frontend/vendor/@fancyapps/fancybox/jquery.fancybox.min.css') }}">
         <!-- theme stylesheet-->
         <link rel="stylesheet" href="{{ asset('frontend/css/style.default.css') }}" id="theme-stylesheet">
+        <link rel="stylesheet" href="{{ asset('frontend/css/prism.css') }}" id="theme-stylesheet">
         <!-- Custom stylesheet - for your changes-->
         <link rel="stylesheet" href="{{ asset('frontend/css/custom.css') }}">
         <!-- Favicon-->
@@ -55,6 +56,7 @@
         <script src="{{ asset('frontend/vendor/@fancyapps/fancybox/jquery.fancybox.min.js') }} "></script>
         <script src="https://kit.fontawesome.com/7cf490feed.js" crossorigin="anonymous"></script>
         <script src="{{ asset('frontend/js/front.js') }}"></script>
+        <script src="{{ asset('frontend/js/prism.js') }}"></script>
         <script src="{{ asset('js/frontend.js') }}"></script>
     </body>
 </html>

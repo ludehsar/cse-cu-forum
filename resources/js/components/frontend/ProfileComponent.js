@@ -29,7 +29,7 @@ class ProfileComponent extends Component {
     }
 
     handlePageChange = async (pageNumber = 1) => {
-        axios.get('/api/users/' + this.state.userId + '/posts').then((response) => {
+        axios.get('/api/users/' + this.state.userId + '/posts?page=' + pageNumber).then((response) => {
             this.setState({
                 posts: response.data.data,
                 activePage: response.data.current_page,

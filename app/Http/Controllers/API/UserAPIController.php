@@ -106,10 +106,9 @@ class UserAPIController extends Controller
                         ->where('posts.user_id', '=', $user->id)
                         ->groupBy('posts.id', 'posts.category_id', 'posts.title', 'posts.subtitle', 'posts.slug', 'posts.is_published',
                         'posts.total_contribution', 'posts.total_love', 'posts.total_wow', 'posts.total_haha', 'posts.total_angry', 'posts.created_at', 'posts.updated_at',
-                        'categories.name', 'categories.slug')
-                        ->paginate(3);
+                        'categories.name', 'categories.slug');
 
-            return response($posts, 200);
+            return response($posts->paginate(3), 200);
         }
         else {
             $posts = FrontendPost::where('username', $user->username)->latest();
