@@ -20,10 +20,12 @@
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password">
                     <span class="focus-input100"></span>
                 </div>
-        
                 <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="remember" name="remember">
                     <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                <div class="form-group form-check">
+                    <a href="{{ route('password.request') }}" class="btn btn-link">Forgot password</a>
                 </div>
                 <div class="form-group clearfix d-flex justify-content-center">
                     <button type="submit" class="btn btn-danger">Log in</button>

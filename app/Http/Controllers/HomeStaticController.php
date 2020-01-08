@@ -18,7 +18,7 @@ class HomeStaticController extends Controller
 
     public function getSearchResults(Request $request)
     {
-        $frontendPosts = Post::search($request->search)->paginate(20);
+        $frontendPosts = Post::search($request->search)->paginate(5);
 
         $categories = Category::get();
         $tags = Tag::get();

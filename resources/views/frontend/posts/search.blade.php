@@ -13,8 +13,8 @@
                         </header>
                         <form action="{{ route('search') }}" method="get" class="search-form">
                             <div class="form-group">
-                                <input type="search" name="search" placeholder="What are you looking for?" value="{{ request()->search }}" />
-                                <button type="submit" class="submit"><i class="icon-search"></i></button>
+                                <input type="search" name="search" placeholder="What are you looking for?" value="{{ request()->search }}" style="background: url(/frontend/img/search_logo.png) no-repeat right center;" />
+                                {{-- <button type="submit" class="submit"><i class="icon-search"></i></button> --}}
                             </div>
                         </form>
                     </div>
