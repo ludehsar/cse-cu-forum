@@ -42,18 +42,16 @@ MAIL_ENCRYPTION=ssl
 * Enter the following API keys and secrets in `.env` file.
 
 ```
-EDITOR_API_KEY=5im2vv2ykg417oajka786955gub22odjzup87vcq2zfrglft
+EDITOR_API_KEY=your_tiny_mce_editor_api_key
 MIX_EDITOR_API_KEY="${EDITOR_API_KEY}"
 ```
 
 and
 
 ```
-ALGOLIA_APP_ID=L9NOFORVNG
-ALGOLIA_SECRET=e00c86999a065b8f2ec1d3fc74e2a551
+ALGOLIA_APP_ID=your_algolia_app_id
+ALGOLIA_SECRET=your_algolia_admin_api_key
 ```
-
-*Note: This is accessible to Mohaimin and Shahriar only, and this project is not public, so don't share this API keys with anyone else. Otherwise, may be we won't be able to show this project to our professors and lecturers.*
 
 * Enter the following command in the console (the directory must be in the same directory where the `.env` file is situated in)
 
