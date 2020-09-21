@@ -26,5 +26,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Defines default string length of the database
         Schema::defaultStringLength(191);
+
+        if(config('app.env') === 'production') {
+            \URL::forceScheme('https');
+        }
     }
 }
