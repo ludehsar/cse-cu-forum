@@ -17,6 +17,9 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="http://cdn.bootcss.com/select2/4.0.0/css/select2.css">
         <link rel="stylesheet" type="text/css" href="https://select2.github.io/select2-bootstrap-theme/css/select2-bootstrap.css">
+        <style>
+            .tox-notification { display: none !important }
+        </style>
 
         <!-- Core js !important -->
         <script src="{{ asset('js/app.js') }}" async defer></script>
@@ -28,14 +31,14 @@
             <div id="wrapper">
 
                 @include('backend.parts.sidebar')
-        
+
                 <!-- Content Wrapper -->
                 <div id="content-wrapper" class="d-flex flex-column">
                     <!-- Main Content -->
                     <div id="content">
 
                         @include('backend.parts.navbar')
-                        
+
                         <router-view></router-view>
 
                         <vue-progress-bar></vue-progress-bar>
