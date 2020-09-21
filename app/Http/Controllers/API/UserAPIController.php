@@ -185,7 +185,7 @@ class UserAPIController extends Controller
             $save_path = 'storage/' . $user->id . '/profiles';
 
             if (!file_exists($save_path)) {
-                mkdir($save_path, 666, true);
+                mkdir($save_path, 0755, true);
             }
 
             Image::make($file)->save( public_path($save_path . '/' . $filename) );
