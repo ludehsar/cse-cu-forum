@@ -17,8 +17,8 @@ class CreateUsersTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('username')->unique();
-            $table->boolean('is_verified')->default(0);
-            $table->boolean('is_admin')->default(0);
+            $table->boolean('is_verified')->default(1);
+            $table->boolean('is_admin')->default(1);
             $table->boolean('is_blocked')->default(0);
             $table->string('profile_picture_url')->default('/photos/shares/profile.png');
             $table->string('email')->unique();

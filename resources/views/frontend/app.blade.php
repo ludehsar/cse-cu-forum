@@ -33,6 +33,12 @@
         </style>
     </head>
     <body>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 100 !important">
+            For demonstration purpose, every user is verified and admin.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         @include('frontend.parts.navbar')
             @auth
                 @if (Auth::user()->email_verified_at == NULL)
