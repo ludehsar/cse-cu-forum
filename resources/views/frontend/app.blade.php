@@ -34,7 +34,7 @@
     </head>
     <body>
         <div class="alert alert-success alert-dismissible fade show" role="alert" style="z-index: 100 !important">
-            For demonstration purpose, every user is verified and admin.
+            For demonstration purpose and showcasing my project, every user is verified and admin.
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
