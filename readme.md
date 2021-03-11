@@ -97,7 +97,7 @@ php artisan serve
 ## Contacts
 
 1. Md. Rashedul Alam Anik - mdraanik12@gmail.com
-2. Gazi Mohaimin Iqbal - mohaiminiqbal21@gmail.com
+2. Gazi Mohaimin Iqbal - gazimiqbal@gmail.com
 3. Muhammad Shahriar Alam - shahriarcsecu33@gmail.com
 
 ## Built With
