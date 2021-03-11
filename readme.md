@@ -94,6 +94,12 @@ php artisan serve
 
 * Most generally the location of the website is `localhost:8000`.
 
+## Contacts
+
+1. Md. Rashedul Alam Anik - mdraanik12@gmail.com
+2. Gazi Mohaimin Iqbal - mohaiminiqbal21@gmail.com
+3. Muhammad Shahriar Alam - shahriarcsecu33@gmail.com
+
 ## Built With
 
 * [Laravel](http://www.dropwizard.io/1.0.2/docs/) - The web framework used.
