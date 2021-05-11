@@ -28,7 +28,7 @@
         "@tinymce/tinymce-react": "^3.6.1",
         "@tinymce/tinymce-vue": "^3.2.3",
         "babel-preset-react": "^6.24.1",
-        "chart.js": "^2.9.3",
+        "chart.js": "^2.9.4",
         "dompurify": "^2.0.17",
         "jquery": "^3.5.1",
         "laravel-vue-pagination": "^2.3.1",
